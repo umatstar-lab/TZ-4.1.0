@@ -1,6 +1,6 @@
 --- a/languages/admin/en-GB/com_tz_portfolio.ini
 +++ b/languages/admin/en-GB/com_tz_portfolio.ini
-@@ -1151,4 +1151,7 @@
+@@ -1151,4 +1151,10 @@
  COM_TZ_PORTFOLIO_COUNT_TAGGED_ITEMS_ASC="Tagged Items ascending"
  COM_TZ_PORTFOLIO_COUNT_TAGGED_ITEMS_DESC="Tagged Items descending"
  COM_TZ_PORTFOLIO_INSTALLATION_DISABLE_TZ_PORTFOLIO_PLUS="Disable TZ Portfolio Plus"
@@ -10,6 +10,9 @@
 +COM_TZ_PORTFOLIO_SERVER_CONNECTION_ERROR="Cannot connect to %s. Check outbound HTTPS access and the server CA certificates."
 +COM_TZ_PORTFOLIO_SERVER_HTTP_ERROR="Server %s returned HTTP %s. The license has not been verified."
 +COM_TZ_PORTFOLIO_SERVER_INVALID_RESPONSE="The vendor server returned an unexpected response instead of valid license or catalogue data."
++
++COM_TZ_PORTFOLIO_SERVER_HTTP_DETAIL="%s Vendor response: %s"
++COM_TZ_PORTFOLIO_SERVER_HTTP_NON_JSON="The server did not return a JSON API error; its HTML response has been hidden."
 --- a/setup/packages/admin/src/Controller/LicenseController.php
 +++ b/setup/packages/admin/src/Controller/LicenseController.php
 @@ -28,7 +28,7 @@
@@ -246,7 +249,7 @@
  
 --- /dev/null
 +++ b/setup/packages/admin/src/Helper/ServerHelper.php
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,63 @@
 +<?php
 +namespace TemPlaza\Component\TZ_Portfolio\Administrator\Helper;
 +
@@ -261,6 +264,13 @@
 +    public static function request($url, $method = 'get', $data = array())
 +    {
 +        $host = parse_url($url, PHP_URL_HOST);
++        $endpoint = strtoupper($method) . ' ' . $host . (parse_url($url, PHP_URL_PATH) ?: '/');
++        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
++        // Only public routing fields identify the failed operation; tokens are never included.
++        $routing = array_intersect_key($query, array_flip(array('option', 'task', 'format')));
++        if ($routing) {
++            $endpoint .= '?' . http_build_query($routing);
++        }
 +        try {
 +            $client = HttpFactory::getHttp(array('timeout' => 30));
 +            $response = $method === 'post' ? $client->post($url, $data) : $client->get($url);
@@ -270,7 +280,26 @@
 +        }
 +        $status = $response->getStatusCode();
 +        if ($status !== 200) {
-+            throw new \RuntimeException(Text::sprintf('COM_TZ_PORTFOLIO_SERVER_HTTP_ERROR', $host, $status));
++            $message = Text::sprintf('COM_TZ_PORTFOLIO_SERVER_HTTP_ERROR', $endpoint, $status);
++            $payload = json_decode((string) $response->getBody());
++            if (is_object($payload) && isset($payload->message) && is_string($payload->message)) {
++                $detail = strip_tags(html_entity_decode($payload->message, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
++                $sensitive = array_merge((array) $data, $query);
++                foreach ($sensitive as $key => $value) {
++                    if (preg_match('/token|key|license|password|secret|authorization/i', $key) && is_scalar($value) && (string) $value !== '') {
++                        $detail = str_replace(array((string) $value, rawurlencode((string) $value), urlencode((string) $value)), '[redacted]', $detail);
++                    }
++                }
++                $detail = preg_replace('/[\x00-\x1F\x7F]/u', ' ', $detail);
++                $detail = trim(mb_substr($detail, 0, 300));
++                if ($detail !== '') {
++                    $message = Text::sprintf('COM_TZ_PORTFOLIO_SERVER_HTTP_DETAIL', $message, $detail);
++                }
++            } else {
++                $message .= ' ' . Text::_('COM_TZ_PORTFOLIO_SERVER_HTTP_NON_JSON');
++            }
++            // Even a success-looking body must not activate a license after HTTP rejection.
++            throw new \RuntimeException($message);
 +        }
 +        return $response;
 +    }

@@ -55,6 +55,12 @@ namespace {
     $factory::$next = fn() => throw new \RuntimeException('Sensitive transport details: test-token');
     ob_start(); $result = $controller->verifyLicense('test-token'); $output = ob_get_clean();
     check($result->state === 400 && $output === '' && !str_contains($result->message, 'test-token'), 'transport exception contained without var_dump, exit or token leak');
+    $factory::$next = fn() => new PsrOnlyResponse(400, '{"state":400,"message":"<b>Token test-token is invalid</b>"}');
+    $result = $controller->verifyLicense('test-token');
+    check($result->state === 400 && str_contains($result->message, 'invalid') && !str_contains($result->message, 'test-token') && !str_contains($result->message, '<b>'), 'HTTP 400 vendor message retained with token and HTML removed');
+    check(str_contains($result->message, 'POST www.tzportfolio.com/download.html?task=license.verify'), 'failed operation identified without secret query fields');
+    $factory::$next = fn() => new PsrOnlyResponse(400, '{"state":200,"license":{"reference":"test-reference"}}');
+    check($controller->verifyLicense('test-token')->state === 400, 'HTTP rejection cannot be overridden by success-looking body');
     $factory::$next = fn() => new PsrOnlyResponse(200, '{"state":400,"message":"License rejected by vendor"}');
     $result = $controller->verifyLicense('test-token');
     check($result->state === 400 && $result->message === 'License rejected by vendor', 'license rejection remains rejection');
