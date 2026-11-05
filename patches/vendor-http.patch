@@ -13,6 +13,35 @@
 +
 +COM_TZ_PORTFOLIO_SERVER_HTTP_DETAIL="%s Vendor response: %s"
 +COM_TZ_PORTFOLIO_SERVER_HTTP_NON_JSON="The server did not return a JSON API error; its HTML response has been hidden."
+--- a/setup/includes/defines.php
++++ b/setup/includes/defines.php
+@@ -57,10 +57,10 @@
+     define('COM_TZ_PORTFOLIO_SETUP_TMP', $path . '/tmp');
+ }
+ if(!defined('COM_TZ_PORTFOLIO_SETUP_VERIFY')) {
+-    define('COM_TZ_PORTFOLIO_SETUP_VERIFY', 'https://www.tzportfolio.com/download.html?task=license.verify');
++    define('COM_TZ_PORTFOLIO_SETUP_VERIFY', 'https://tzportfolio.com/download.html?task=license.verify');
+ }
+ if(!defined('COM_TZ_PORTFOLIO_SETUP_ACTIVE')) {
+-    define('COM_TZ_PORTFOLIO_SETUP_ACTIVE', 'https://www.tzportfolio.com/download.html?task=license.active');
++    define('COM_TZ_PORTFOLIO_SETUP_ACTIVE', 'https://tzportfolio.com/download.html?task=license.active');
+ }
+ 
+ 
+--- a/setup/packages/admin/includes/defines.php
++++ b/setup/packages/admin/includes/defines.php
+@@ -83,8 +83,8 @@
+ }
+ /* since v2.2.7 */
+ if(!defined('COM_TZ_PORTFOLIO_VERIFY_LICENSE')) {
+-    define('COM_TZ_PORTFOLIO_VERIFY_LICENSE', 'https://www.tzportfolio.com/download.html?task=license.verify');
++    define('COM_TZ_PORTFOLIO_VERIFY_LICENSE', 'https://tzportfolio.com/download.html?task=license.verify');
+ }
+ if(!defined('COM_TZ_PORTFOLIO_ACTIVE_LICENSE')) {
+-    define('COM_TZ_PORTFOLIO_ACTIVE_LICENSE', 'https://www.tzportfolio.com/download.html?task=license.active');
++    define('COM_TZ_PORTFOLIO_ACTIVE_LICENSE', 'https://tzportfolio.com/download.html?task=license.active');
+ }
+\ No newline at end of file
 --- a/setup/packages/admin/src/Controller/LicenseController.php
 +++ b/setup/packages/admin/src/Controller/LicenseController.php
 @@ -28,7 +28,7 @@
@@ -243,13 +272,13 @@
      <updateservers>
          <server type="extension" pirority="1" name="TZ Portfolio Component">
 -            <![CDATA[http://www.tzportfolio.com/tzupdates/tz_portfolio.xml]]>
-+            <![CDATA[https://www.tzportfolio.com/tzupdates/tz_portfolio.xml]]>
++            <![CDATA[https://tzportfolio.com/tzupdates/tz_portfolio.xml]]>
          </server>
      </updateservers>
  
 --- /dev/null
 +++ b/setup/packages/admin/src/Helper/ServerHelper.php
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,71 @@
 +<?php
 +namespace TemPlaza\Component\TZ_Portfolio\Administrator\Helper;
 +
@@ -263,6 +292,7 @@
 +{
 +    public static function request($url, $method = 'get', $data = array())
 +    {
++        $url = self::normalizeVendorUrl($url);
 +        $host = parse_url($url, PHP_URL_HOST);
 +        $endpoint = strtoupper($method) . ' ' . $host . (parse_url($url, PHP_URL_PATH) ?: '/');
 +        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
@@ -272,7 +302,7 @@
 +            $endpoint .= '?' . http_build_query($routing);
 +        }
 +        try {
-+            $client = HttpFactory::getHttp(array('timeout' => 30));
++            $client = HttpFactory::getHttp(array('timeout' => 30, 'follow_location' => $method !== 'post'));
 +            $response = $method === 'post' ? $client->post($url, $data) : $client->get($url);
 +        } catch (\Throwable $error) {
 +            // Transport exceptions can contain the complete URL, including a token.
@@ -302,6 +332,13 @@
 +            throw new \RuntimeException($message);
 +        }
 +        return $response;
++    }
++
++    public static function normalizeVendorUrl($url)
++    {
++        // The vendor redirects www to the apex host. Avoid redirecting POST bodies/tokens.
++        // Match only the vendor hostname, never a similarly named third-party domain.
++        return preg_replace('~^https?://(?:www\.)?tzportfolio\.com(?=[:/?#]|$)~i', 'https://tzportfolio.com', $url);
 +    }
 +
 +    public static function decodeJson($response)

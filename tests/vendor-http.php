@@ -38,11 +38,16 @@ namespace {
     function check($condition, $name) { if (!$condition) throw new \RuntimeException($name); echo "PASS $name\n"; }
     $controller = new \TemPlaza\Component\TZ_Portfolio\Administrator\Controller\LicenseController();
     $factory = \Joomla\CMS\Http\HttpFactory::class;
+    $server = \TemPlaza\Component\TZ_Portfolio\Administrator\Helper\ServerHelper::class;
+    check($server::normalizeVendorUrl('https://www.tzportfolio.com/download.html?task=license.verify') === 'https://tzportfolio.com/download.html?task=license.verify', 'vendor POST URL uses canonical host');
+    check($server::normalizeVendorUrl('http://www.tzportfolio.com/addons.html?token_key=test-token') === 'https://tzportfolio.com/addons.html?token_key=test-token', 'legacy vendor URL upgraded without losing query');
+    check($server::normalizeVendorUrl('https://www.tzportfolio.com.example.test/path') === 'https://www.tzportfolio.com.example.test/path', 'third-party URLs not rewritten');
     $factory::$next = fn() => new PsrOnlyResponse(200, '{"state":200,"licenses":[{"reference":"test-reference"}]}');
     $result = $controller->verifyLicense('test-token');
     check($result->state === 200 && count($result->licenses) === 1, 'valid response accepted through PSR-7 methods');
+    check($factory::$request[0] === 'https://tzportfolio.com/download.html?task=license.verify', 'license POST sent directly to canonical endpoint');
     check($factory::$request[1] === ['token_key'=>'test-token','produce'=>'tz-portfolio-plus'], 'vendor request contract preserved');
-    foreach ([401, 403, 500] as $status) {
+    foreach ([301, 401, 403, 500] as $status) {
         $factory::$next = fn() => new PsrOnlyResponse($status, 'secret must not be shown');
         $result = $controller->verifyLicense('test-token');
         check($result->state === 400 && str_contains($result->message, (string) $status) && !str_contains($result->message, 'secret'), "HTTP $status diagnosed without body disclosure");
@@ -58,7 +63,7 @@ namespace {
     $factory::$next = fn() => new PsrOnlyResponse(400, '{"state":400,"message":"<b>Token test-token is invalid</b>"}');
     $result = $controller->verifyLicense('test-token');
     check($result->state === 400 && str_contains($result->message, 'invalid') && !str_contains($result->message, 'test-token') && !str_contains($result->message, '<b>'), 'HTTP 400 vendor message retained with token and HTML removed');
-    check(str_contains($result->message, 'POST www.tzportfolio.com/download.html?task=license.verify'), 'failed operation identified without secret query fields');
+    check(str_contains($result->message, 'POST tzportfolio.com/download.html?task=license.verify'), 'failed operation identified without secret query fields');
     $factory::$next = fn() => new PsrOnlyResponse(400, '{"state":200,"license":{"reference":"test-reference"}}');
     check($controller->verifyLicense('test-token')->state === 400, 'HTTP rejection cannot be overridden by success-looking body');
     $factory::$next = fn() => new PsrOnlyResponse(200, '{"state":400,"message":"License rejected by vendor"}');
