@@ -1,0 +1,93 @@
+--- a/setup/packages/admin/layouts/form/field/modal/article.php
++++ b/setup/packages/admin/layouts/form/field/modal/article.php
+@@ -87,32 +87,45 @@
+     echo htmlspecialchars($value, ENT_COMPAT, 'UTF-8') ?>"/>
+ <?php
+ //$doc    = Factory::getApplication() -> getDocument();
+-$wa -> addInlineScript('
+-    (function($, window){
++$wa->addInlineScript('
++    (function(window){
+         "use strict";
+         window.tppClearArticle = function(id) {
+-            $("#" + id + "_name").val("");
+-            $("#" + id ).val("");
+-            $("#" + id + "_clear").addClass("hidden");
+-            $("#" + id + "_edit").addClass("hidden");
+-            $("#" + id + "_select").removeClass("hidden");
+-                '.($submitform?'$("#'.$id.'").parents("form").first().submit()':'').'
++            var field = document.getElementById(id);
++            document.getElementById(id + "_name").value = "";
++            field.value = "";
++            document.getElementById(id + "_clear").classList.add("hidden");
++            var edit = document.getElementById(id + "_edit");
++            if (edit) edit.classList.add("hidden");
++            document.getElementById(id + "_select").classList.remove("hidden");
++            field.dispatchEvent(new Event("change", {bubbles: true}));
++            '.($submitform?'field.closest("form").submit();':'').'
+             return false;
+         };
+-        window.'.$function.' = function(id, title, category){
+-            if(id.length){
++        window.'.$function.' = function(ids, titles, category){
++            if (ids.length) {
+                 var fieldId = "'.$id.'";
+-                $("#" + fieldId).val(id);
+-                $("#" + fieldId + "_name").val(title);
+-                $("#'.$modalId.'").modal("hide");
+-                $("#" + fieldId + "_clear").removeClass("hidden");
++                var field = document.getElementById(fieldId);
++                var articleId = Array.isArray(ids) ? ids[0] : ids;
++                field.value = articleId;
++                document.getElementById(fieldId + "_name").value = Array.isArray(titles) ? titles[0] : titles;
++                var modal = document.getElementById("'.$modalId.'");
++                var instance = bootstrap.Modal.getOrCreateInstance(modal);
++                // Bootstrap ignores hide() while the opening transition is active.
++                var closeModal = function() { instance.hide(); };
++                modal.addEventListener("shown.bs.modal", closeModal, {once: true});
++                modal.addEventListener("hidden.bs.modal", function() {
++                    modal.removeEventListener("shown.bs.modal", closeModal);
++                }, {once: true});
++                instance.hide();
++                document.getElementById(fieldId + "_clear").classList.remove("hidden");
+                 '.($allowEdit?'
+-                $("#" + fieldId + "_edit").removeClass("hidden")
+-                    .attr("href",function(index, href){
+-                        return "index.php?option=com_tz_portfolio&task=article.edit&id="+id;
+-                    });
+-                $("#" + fieldId + "_select").addClass("hidden");':'')
+-                .($submitform?'$("#'.$id.'").parents("form").first().submit()':'').'
++                var edit = document.getElementById(fieldId + "_edit");
++                edit.classList.remove("hidden");
++                edit.href = "index.php?option=com_tz_portfolio&task=article.edit&id=" + articleId;
++                document.getElementById(fieldId + "_select").classList.add("hidden");':'').'
++                field.dispatchEvent(new Event("change", {bubbles: true}));
++                '.($submitform?'field.closest("form").submit();':'').'
+             }
+         };
+-    })(jQuery, window);', ['position' => 'after']);
+\ No newline at end of file
++    })(window);', ['position' => 'after']);
+--- a/setup/packages/admin/src/Helper/TZ_PortfolioHelper.php
++++ b/setup/packages/admin/src/Helper/TZ_PortfolioHelper.php
+@@ -45,7 +45,8 @@
+     public static function getActions($section = '', $id = 0, $parent_section = null)
+     {
+         $user	    = Factory::getApplication()->getIdentity();
+-        $result     = new Registry();
++        // ACL action names are literal keys, not nested registry paths.
++        $result     = new Registry(null, '');
+         $component  = 'com_tz_portfolio';
+ 
+         $path = JPATH_ADMINISTRATOR . '/components/'.$component.'/access.xml';
+--- a/setup/packages/admin/tmpl/articles/modal.php
++++ b/setup/packages/admin/tmpl/articles/modal.php
+@@ -65,7 +65,7 @@
+ }');
+ ?>
+ 
+-<form action="<?php echo Route::_('index.php?option=com_tz_portfolio_plus&view=articles&layout=modal&tmpl=component&function='
++<form action="<?php echo Route::_('index.php?option=com_tz_portfolio&view=articles&layout=modal&tmpl=component&function='
+     .$function.($isMultiple?'&ismultiple=true':'').'&'.Session::getFormToken().'=1');?>"
+       method="post" name="adminForm" id="adminForm" class="tpContainer">
+     <?php if($isMultiple){?>
