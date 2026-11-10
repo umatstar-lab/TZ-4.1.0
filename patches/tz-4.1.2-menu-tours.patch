@@ -1,0 +1,328 @@
+--- a/setup/packages/admin/layouts/form/field/modal/article.php
++++ b/setup/packages/admin/layouts/form/field/modal/article.php
+@@ -70,7 +70,7 @@
+ ?>
+ <div class="input-append input-group">
+     <input type="text" <?php echo $required; ?> readonly="readonly" id="<?php echo $id; ?>_name" value="<?php
+-            echo $title; ?>" <?php echo (!empty($size)?$size:''). $class; ?>  placeholder="<?php echo Text::_('COM_TZ_PORTFOLIO_SELECT_AN_ARTICLE');?>" />
++            echo htmlspecialchars((string) $title, ENT_QUOTES, 'UTF-8'); ?>" <?php echo (!empty($size)?$size:''). $class; ?>  placeholder="<?php echo Text::_('COM_TZ_PORTFOLIO_SELECT_AN_ARTICLE');?>" />
+     <a id="<?php echo $id; ?>_select" class="btn btn-primary hasTooltip" title="<?php echo Text::_('COM_TZ_PORTFOLIO_CHANGE_ARTICLE');
+         ?>" data-toggle="modal" data-bs-toggle="modal" href="#<?php echo $modalId;?>"><i class="icon-file me-1"></i><?php
+         echo Text::_('JSELECT');?></a>
+@@ -87,32 +87,45 @@
+     echo htmlspecialchars($value, ENT_COMPAT, 'UTF-8') ?>"/>
+ <?php
+ //$doc    = Factory::getApplication() -> getDocument();
+-$wa -> addInlineScript('
+-    (function($, window){
++$wa->addInlineScript('
++    (function(window){
+         "use strict";
+         window.tppClearArticle = function(id) {
+-            $("#" + id + "_name").val("");
+-            $("#" + id ).val("");
+-            $("#" + id + "_clear").addClass("hidden");
+-            $("#" + id + "_edit").addClass("hidden");
+-            $("#" + id + "_select").removeClass("hidden");
+-                '.($submitform?'$("#'.$id.'").parents("form").first().submit()':'').'
++            var field = document.getElementById(id);
++            document.getElementById(id + "_name").value = "";
++            field.value = "";
++            document.getElementById(id + "_clear").classList.add("hidden");
++            var edit = document.getElementById(id + "_edit");
++            if (edit) edit.classList.add("hidden");
++            document.getElementById(id + "_select").classList.remove("hidden");
++            field.dispatchEvent(new Event("change", {bubbles: true}));
++            '.($submitform?'field.closest("form").submit();':'').'
+             return false;
+         };
+-        window.'.$function.' = function(id, title, category){
+-            if(id.length){
++        window.'.$function.' = function(ids, titles, category){
++            if (ids.length) {
+                 var fieldId = "'.$id.'";
+-                $("#" + fieldId).val(id);
+-                $("#" + fieldId + "_name").val(title);
+-                $("#'.$modalId.'").modal("hide");
+-                $("#" + fieldId + "_clear").removeClass("hidden");
++                var field = document.getElementById(fieldId);
++                var articleId = Array.isArray(ids) ? ids[0] : ids;
++                field.value = articleId;
++                document.getElementById(fieldId + "_name").value = Array.isArray(titles) ? titles[0] : titles;
++                var modal = document.getElementById("'.$modalId.'");
++                var instance = bootstrap.Modal.getOrCreateInstance(modal);
++                // Bootstrap ignores hide() while the opening transition is active.
++                var closeModal = function() { instance.hide(); };
++                modal.addEventListener("shown.bs.modal", closeModal, {once: true});
++                modal.addEventListener("hidden.bs.modal", function() {
++                    modal.removeEventListener("shown.bs.modal", closeModal);
++                }, {once: true});
++                instance.hide();
++                document.getElementById(fieldId + "_clear").classList.remove("hidden");
+                 '.($allowEdit?'
+-                $("#" + fieldId + "_edit").removeClass("hidden")
+-                    .attr("href",function(index, href){
+-                        return "index.php?option=com_tz_portfolio&task=article.edit&id="+id;
+-                    });
+-                $("#" + fieldId + "_select").addClass("hidden");':'')
+-                .($submitform?'$("#'.$id.'").parents("form").first().submit()':'').'
++                var edit = document.getElementById(fieldId + "_edit");
++                edit.classList.remove("hidden");
++                edit.href = "index.php?option=com_tz_portfolio&task=article.edit&id=" + articleId;
++                document.getElementById(fieldId + "_select").classList.add("hidden");':'').'
++                field.dispatchEvent(new Event("change", {bubbles: true}));
++                '.($submitform?'field.closest("form").submit();':'').'
+             }
+         };
+-    })(jQuery, window);', ['position' => 'after']);
+\ No newline at end of file
++    })(window);', ['position' => 'after']);
+--- a/setup/packages/admin/tmpl/articles/modal.php
++++ b/setup/packages/admin/tmpl/articles/modal.php
+@@ -65,7 +65,7 @@
+ }');
+ ?>
+ 
+-<form action="<?php echo Route::_('index.php?option=com_tz_portfolio_plus&view=articles&layout=modal&tmpl=component&function='
++<form action="<?php echo Route::_('index.php?option=com_tz_portfolio&view=articles&layout=modal&tmpl=component&function='
+     .$function.($isMultiple?'&ismultiple=true':'').'&'.Session::getFormToken().'=1');?>"
+       method="post" name="adminForm" id="adminForm" class="tpContainer">
+     <?php if($isMultiple){?>
+--- a/setup/packages/media/com_tz_portfolio/joomla.asset.json
++++ b/setup/packages/media/com_tz_portfolio/joomla.asset.json
+@@ -92,7 +92,7 @@
+       "attributes": {
+         "defer": true
+       },
+-      "uri": "com_tz_portfolio/introguide.min.js"
++      "uri": "com_tz_portfolio/introguide.manual.min.js"
+     },
+     {
+       "name": "com_tz_portfolio.field-permissions",
+--- a/setup/packages/media/com_tz_portfolio/js/introguide.js
++++ b/setup/packages/media/com_tz_portfolio/js/introguide.js
+@@ -1,52 +1,25 @@
+-(function ($, window, Joomla) {
++(function ($, window) {
+     "use strict";
+-
+-    window.tppIntroGuide   = function(view, steps, stripped, token){
+-        if(typeof introJs === "undefined"){
++    // Component tours are available on request only; never open on page load.
++    window.tppIntroGuide = function (view, steps, stripped, token) {
++        if (typeof introJs === "undefined" || !steps) {
+             return;
+         }
+-
+-        var introguide  = introJs();
+-
+-        if(!steps){
+-            return;
+-        }
+-
+-        var __settings  = Joomla.getOptions("tz_component.settings") || {};
+-
+-        introguide.addSteps(steps);
+-
+-        introguide.onbeforechange(function(targetElement) {
++        var guide = introJs();
++        guide.addSteps(steps);
++        guide.onbeforechange(function () {
+             $(this._targetElement).addClass("tpp-intro-guide__loaded");
+         });
+-
+-        introguide.onbeforeexit(function() {
++        guide.onbeforeexit(function () {
+             $(this._targetElement).removeClass("tpp-intro-guide__loaded");
+         });
+-
+-        introguide.onexit(function() {
+-            var data        = {};
+-            data["v"]       = view;
+-            data[token]   = 1;
+-            data["task"]   = "introguide";
+-            $.ajax({
+-                method: "POST",
+-                url: __settings["ajaxUrl"],
+-                data: data
+-            }).done(function(){
+-                $("#toolbar-support").show();
+-            });
++        guide.onexit(function () {
++            $(this._targetElement).removeClass("tpp-intro-guide__loaded");
+         });
+-
+-        $("#toolbar-support").on("click", function(){
+-            introguide.start();
++        $("#toolbar-support").show().off("click.tppIntroGuide").on("click.tppIntroGuide", function (event) {
++            event.preventDefault();
++            guide.start();
+         });
+-
+-        if(!stripped){
+-            $("#toolbar-support").hide();
+-            introguide.start();
+-        }
+-
+-        return introguide;
++        return guide;
+     };
+-})(jQuery, window, Joomla);
+\ No newline at end of file
++})(jQuery, window);
+--- a/setup/packages/media/com_tz_portfolio/js/introguide.min.js
++++ b/setup/packages/media/com_tz_portfolio/js/introguide.min.js
+@@ -1 +1,25 @@
+-!function($,window){"use strict";window.tppIntroGuide=function(view,steps,stripped,token){if("undefined"!=typeof introJs){var introguide=introJs();if(steps)return introguide.addSteps(steps),introguide.onbeforechange(function(targetElement){$(this._targetElement).addClass("tpp-intro-guide__loaded")}),introguide.onbeforeexit(function(){$(this._targetElement).removeClass("tpp-intro-guide__loaded")}),introguide.onexit(function(){var data={};data.v=view,data[token]=1,data.task="introguide",$.ajax({method:"POST",url:"index.php?option=com_tz_portfolio_plus",data:data}).done(function(){$("#toolbar-support").show()})}),$("#toolbar-support").on("click",function(){introguide.start()}),stripped||($("#toolbar-support").hide(),introguide.start()),introguide}}}(jQuery,window);
+\ No newline at end of file
++(function ($, window) {
++    "use strict";
++    // Component tours are available on request only; never open on page load.
++    window.tppIntroGuide = function (view, steps, stripped, token) {
++        if (typeof introJs === "undefined" || !steps) {
++            return;
++        }
++        var guide = introJs();
++        guide.addSteps(steps);
++        guide.onbeforechange(function () {
++            $(this._targetElement).addClass("tpp-intro-guide__loaded");
++        });
++        guide.onbeforeexit(function () {
++            $(this._targetElement).removeClass("tpp-intro-guide__loaded");
++        });
++        guide.onexit(function () {
++            $(this._targetElement).removeClass("tpp-intro-guide__loaded");
++        });
++        $("#toolbar-support").show().off("click.tppIntroGuide").on("click.tppIntroGuide", function (event) {
++            event.preventDefault();
++            guide.start();
++        });
++        return guide;
++    };
++})(jQuery, window);
+--- a/setup/packages/media/com_tz_portfolio/js/vendor/introguide.js
++++ b/setup/packages/media/com_tz_portfolio/js/vendor/introguide.js
+@@ -1,50 +1,25 @@
+ (function ($, window) {
+     "use strict";
+-
+-    window.tppIntroGuide   = function(view, steps, stripped, token){
+-        if(typeof introJs === "undefined"){
++    // Component tours are available on request only; never open on page load.
++    window.tppIntroGuide = function (view, steps, stripped, token) {
++        if (typeof introJs === "undefined" || !steps) {
+             return;
+         }
+-
+-        var introguide  = introJs();
+-
+-        if(!steps){
+-            return;
+-        }
+-
+-        introguide.addSteps(steps);
+-
+-        introguide.onbeforechange(function(targetElement) {
++        var guide = introJs();
++        guide.addSteps(steps);
++        guide.onbeforechange(function () {
+             $(this._targetElement).addClass("tpp-intro-guide__loaded");
+         });
+-
+-        introguide.onbeforeexit(function() {
++        guide.onbeforeexit(function () {
+             $(this._targetElement).removeClass("tpp-intro-guide__loaded");
+         });
+-
+-        introguide.onexit(function() {
+-            var data        = {};
+-            data["v"]       = view;
+-            data[token]   = 1;
+-            data["task"]   = "introguide";
+-            $.ajax({
+-                method: "POST",
+-                url: "index.php?option=com_tz_portfolio_plus",
+-                data: data
+-            }).done(function(){
+-                $("#toolbar-support").show();
+-            });
++        guide.onexit(function () {
++            $(this._targetElement).removeClass("tpp-intro-guide__loaded");
+         });
+-
+-        $("#toolbar-support").on("click", function(){
+-            introguide.start();
++        $("#toolbar-support").show().off("click.tppIntroGuide").on("click.tppIntroGuide", function (event) {
++            event.preventDefault();
++            guide.start();
+         });
+-
+-        if(!stripped){
+-            $("#toolbar-support").hide();
+-            introguide.start();
+-        }
+-
+-        return introguide;
++        return guide;
+     };
+-})(jQuery, window);
+\ No newline at end of file
++})(jQuery, window);
+--- a/setup/packages/media/com_tz_portfolio/js/vendor/introguide.min.js
++++ b/setup/packages/media/com_tz_portfolio/js/vendor/introguide.min.js
+@@ -1 +1,25 @@
+-!function($,window){"use strict";window.tppIntroGuide=function(view,steps,stripped,token){if("undefined"!=typeof introJs){var introguide=introJs();if(steps)return introguide.addSteps(steps),introguide.onbeforechange(function(targetElement){$(this._targetElement).addClass("tpp-intro-guide__loaded")}),introguide.onbeforeexit(function(){$(this._targetElement).removeClass("tpp-intro-guide__loaded")}),introguide.onexit(function(){var data={};data.v=view,data[token]=1,data.task="introguide",$.ajax({method:"POST",url:"index.php?option=com_tz_portfolio_plus",data:data}).done(function(){$("#toolbar-support").show()})}),$("#toolbar-support").on("click",function(){introguide.start()}),stripped||($("#toolbar-support").hide(),introguide.start()),introguide}}}(jQuery,window);
+\ No newline at end of file
++(function ($, window) {
++    "use strict";
++    // Component tours are available on request only; never open on page load.
++    window.tppIntroGuide = function (view, steps, stripped, token) {
++        if (typeof introJs === "undefined" || !steps) {
++            return;
++        }
++        var guide = introJs();
++        guide.addSteps(steps);
++        guide.onbeforechange(function () {
++            $(this._targetElement).addClass("tpp-intro-guide__loaded");
++        });
++        guide.onbeforeexit(function () {
++            $(this._targetElement).removeClass("tpp-intro-guide__loaded");
++        });
++        guide.onexit(function () {
++            $(this._targetElement).removeClass("tpp-intro-guide__loaded");
++        });
++        $("#toolbar-support").show().off("click.tppIntroGuide").on("click.tppIntroGuide", function (event) {
++            event.preventDefault();
++            guide.start();
++        });
++        return guide;
++    };
++})(jQuery, window);
+--- /dev/null
++++ b/setup/packages/media/com_tz_portfolio/js/introguide.manual.min.js
+@@ -0,0 +1,25 @@
++(function ($, window) {
++    "use strict";
++    // Component tours are available on request only; never open on page load.
++    window.tppIntroGuide = function (view, steps, stripped, token) {
++        if (typeof introJs === "undefined" || !steps) {
++            return;
++        }
++        var guide = introJs();
++        guide.addSteps(steps);
++        guide.onbeforechange(function () {
++            $(this._targetElement).addClass("tpp-intro-guide__loaded");
++        });
++        guide.onbeforeexit(function () {
++            $(this._targetElement).removeClass("tpp-intro-guide__loaded");
++        });
++        guide.onexit(function () {
++            $(this._targetElement).removeClass("tpp-intro-guide__loaded");
++        });
++        $("#toolbar-support").show().off("click.tppIntroGuide").on("click.tppIntroGuide", function (event) {
++            event.preventDefault();
++            guide.start();
++        });
++        return guide;
++    };
++})(jQuery, window);
