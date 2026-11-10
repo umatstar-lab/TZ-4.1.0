@@ -1,0 +1,305 @@
+--- a/css/style.css
++++ b/css/style.css
+@@ -69,14 +69,45 @@
+   height: 100%;
+ }
+ 
+-.tz_portfolio_gallery.masonry-container {
+-  margin: 0 -15px;
++.tz-portfolio-gallery .tz_portfolio_gallery.masonry-container {
++  display: block;
++  column-width: var(--tz-gallery-column-width, 400px);
++  column-gap: 30px;
++  margin: 0;
+ }
+-.tz_portfolio_gallery.masonry-container .gallery-inner {
+-  padding: 15px;
++.tz-portfolio-gallery .masonry-container .gallery-listing {
++  display: inline-block;
++  width: 100%;
++  max-width: 100%;
++  box-sizing: border-box;
++  break-inside: avoid;
++  margin: 0 0 30px;
++  vertical-align: top;
+ }
+-.tz_portfolio_gallery.masonry-container .gallery-listing {
+-  box-sizing: border-box;
++.tz-portfolio-gallery .masonry-container .gallery-inner {
++  padding: 0;
++}
++.tz-portfolio-gallery .masonry-container .gallery-image img {
++  display: block;
++  transform: none;
++}
++.tz-portfolio-gallery .image-caption.under_image {
++  margin: 12px 0 0;
++  font: inherit;
++  line-height: 1.45;
++  text-align: center;
++  overflow-wrap: anywhere;
++}
++.tz-portfolio-gallery .visually-hidden {
++  position: absolute;
++  width: 1px;
++  height: 1px;
++  padding: 0;
++  margin: -1px;
++  overflow: hidden;
++  clip: rect(0, 0, 0, 0);
++  white-space: nowrap;
++  border: 0;
+ }
+ .tz_portfolio_gallery.horizontal_masonry-container {
+   display: flex;
+--- a/css/style.less
++++ b/css/style.less
+@@ -116,3 +116,45 @@
+     }
+   }
+ }
++
++// Standalone responsive masonry; keep runtime CSS usable without UIkit.
++.tz-portfolio-gallery .tz_portfolio_gallery.masonry-container {
++  display: block;
++  column-width: var(--tz-gallery-column-width, 400px);
++  column-gap: 30px;
++  margin: 0;
++}
++.tz-portfolio-gallery .masonry-container .gallery-listing {
++  display: inline-block;
++  width: 100%;
++  max-width: 100%;
++  box-sizing: border-box;
++  break-inside: avoid;
++  margin: 0 0 30px;
++  vertical-align: top;
++}
++.tz-portfolio-gallery .masonry-container .gallery-inner {
++  padding: 0;
++}
++.tz-portfolio-gallery .masonry-container .gallery-image img {
++  display: block;
++  transform: none;
++}
++.tz-portfolio-gallery .image-caption.under_image {
++  margin: 12px 0 0;
++  font: inherit;
++  line-height: 1.45;
++  text-align: center;
++  overflow-wrap: anywhere;
++}
++.tz-portfolio-gallery .visually-hidden {
++  position: absolute;
++  width: 1px;
++  height: 1px;
++  padding: 0;
++  margin: -1px;
++  overflow: hidden;
++  clip: rect(0, 0, 0, 0);
++  white-space: nowrap;
++  border: 0;
++}
+--- a/gallery.xml
++++ b/gallery.xml
+@@ -7,7 +7,7 @@
+     <license>GNU/GPL v2 or later http://www.gnu.org/licenses/gpl-2.0.html</license>
+     <authorEmail>support@templaza.com</authorEmail>
+     <authorUrl>www.templaza.com/</authorUrl>
+-    <version>2.1.3</version>
++    <version>2.1.4</version>
+     <description>PLG_CONTENT_GALLERY_XML_DESCRIPTION</description>
+     <tpTargetPlatforms>
+         <tpTargetPlatform name="com_tz_portfolio" version="4.*"/>
+--- a/src/View/Article/HtmlView.php
++++ b/src/View/Article/HtmlView.php
+@@ -37,6 +37,12 @@
+     {
+         $model         = $this->getModel();
+         $this->gallery = $model->getAddonData();
++        if (is_string($this->gallery)) {
++            $this->gallery = json_decode($this->gallery);
++        }
++        if (is_array($this->gallery)) {
++            $this->gallery = (object) $this->gallery;
++        }
+         $this->item    = $model->getItem();
+         $this->params  = $model->getState('params');
+ 
+@@ -81,21 +87,7 @@
+ 
+     protected function hasImages(): bool
+     {
+-        if (!is_object($this->gallery) || !isset($this->gallery->gallery_content)) {
+-            return false;
+-        }
+-
+-        $content = $this->gallery->gallery_content;
+-
+-        if (is_array($content)) {
+-            $images = $content['gallery_image'] ?? [];
+-        } elseif (is_object($content)) {
+-            $images = $content->gallery_image ?? [];
+-        } else {
+-            return false;
+-        }
+-
+-        return is_array($images) && count($images) > 0;
++        return count($this->getGalleryImages()) > 0;
+     }
+ 
+     protected function styleInit($item): void
+@@ -106,11 +98,19 @@
+         }
+ 
+         $document = $application->getDocument();
++        if (!is_object($document)) {
++            try {
++                $document = Factory::getDocument();
++            } catch (\Throwable $exception) {
++                return;
++            }
++        }
+         if (!is_object($document) || !method_exists($document, 'getWebAssetManager')) {
+             return;
+         }
+ 
+         $wa = $document->getWebAssetManager();
++        $assetBase = rtrim(\Joomla\CMS\Uri\Uri::root(), '/') . '/components/com_tz_portfolio/add-ons/content/gallery/';
+ 
+         // TZ Portfolio 4.1 normally registers Fancybox in joomla.asset.json.
+         // On some upgraded installations that asset registry is not available yet,
+@@ -127,7 +127,7 @@
+                 $wa->registerStyle(
+                     $fancyboxStyleHandle,
+                     'media/com_tz_portfolio/css/jquery.fancybox.min.css',
+-                    ['version' => 'auto']
++                    ['version' => '2.1.4']
+                 );
+             }
+ 
+@@ -143,7 +143,7 @@
+                 $wa->registerScript(
+                     $fancyboxScriptHandle,
+                     'media/com_tz_portfolio/js/jquery.fancybox.min.js',
+-                    ['version' => 'auto'],
++                    ['version' => '2.1.4'],
+                     [],
+                     ['jquery']
+                 );
+@@ -154,13 +154,13 @@
+ 
+         $wa->registerAndUseStyle(
+             'tzportfolio.content.gallery',
+-            'components/com_tz_portfolio/add-ons/content/gallery/css/style.css',
+-            ['version' => 'auto']
++            $assetBase . 'css/style.css',
++            ['version' => '2.1.4']
+         );
+         $wa->registerAndUseScript(
+             'tzportfolio.content.gallery',
+-            'components/com_tz_portfolio/add-ons/content/gallery/js/lightbox.min.js',
+-            ['version' => 'auto'],
++            $assetBase . 'js/lightbox.min.js',
++            ['version' => '2.1.4'],
+             [],
+             ['jquery', $fancyboxScriptHandle]
+         );
+@@ -218,8 +218,8 @@
+             $css .= $selector . ' .tz_portfolio_gallery.grid-container{grid-template-columns:repeat(auto-fill,minmax(' . $width . 'px,1fr));}';
+             $css .= $selector . ' .tz_portfolio_gallery.grid-container .gallery-listing{height:' . $height . 'px;}';
+         } elseif ($galleryType === 'masonry') {
+-            $css .= $selector . ' .tz_portfolio_gallery.masonry-container .gallery-listing{width:' . $width . 'px;max-width:100%;}';
+-            $css .= $selector . ' .tz_portfolio_gallery.masonry-container .gallery-inner{padding:15px;}';
++            $css .= $selector . ' .tz_portfolio_gallery.masonry-container{--tz-gallery-column-width:' . $width . 'px;}';
++            
+         } elseif ($galleryType === 'horizontal_masonry') {
+             $css .= $selector . ' .tz_portfolio_gallery.horizontal_masonry-container .gallery-listing{height:' . $height . 'px;min-width:' . $width . 'px;}';
+ 
+@@ -232,13 +232,13 @@
+         } elseif ($galleryType === 'carousel') {
+             $wa->registerAndUseStyle(
+                 'tzportfolio.content.gallery.slick',
+-                'components/com_tz_portfolio/add-ons/content/gallery/css/slick.min.css',
+-                ['version' => 'auto']
++                $assetBase . 'css/slick.min.css',
++                ['version' => '2.1.4']
+             );
+             $wa->registerAndUseScript(
+                 'tzportfolio.content.gallery.slick',
+-                'components/com_tz_portfolio/add-ons/content/gallery/js/slick.min.js',
+-                ['version' => 'auto'],
++                $assetBase . 'js/slick.min.js',
++                ['version' => '2.1.4'],
+                 [],
+                 ['jquery']
+             );
+@@ -273,15 +273,20 @@
+ 
+     protected function getGalleryImages(): array
+     {
+-        if (!is_object($this->gallery) || !isset($this->gallery->gallery_content)) {
+-            return [];
+-        }
+-
+-        $content = $this->gallery->gallery_content;
+-        $images  = is_array($content)
+-            ? ($content['gallery_image'] ?? [])
++        $gallery = $this->gallery;
++        if (is_string($gallery)) {
++            $gallery = json_decode($gallery);
++        }
++        $content = is_array($gallery) ? ($gallery['gallery_content'] ?? null)
++            : (is_object($gallery) ? ($gallery->gallery_content ?? null) : null);
++        if (is_string($content)) {
++            $content = json_decode($content);
++        }
++        $images = is_array($content) ? ($content['gallery_image'] ?? [])
+             : (is_object($content) ? ($content->gallery_image ?? []) : []);
+-
++        if ($images instanceof \Traversable) {
++            $images = iterator_to_array($images, false);
++        }
+         return is_array($images) ? array_values($images) : [];
+     }
+ 
+--- a/tmpl/article/default.php
++++ b/tmpl/article/default.php
+@@ -34,6 +34,9 @@
+ }
+ 
+ $gallery = $this->gallery ?? null;
++if (is_string($gallery)) {
++    $gallery = json_decode($gallery);
++}
+ if (is_array($gallery)) {
+     $gallery = (object) $gallery;
+ }
+@@ -200,7 +203,7 @@
+         <<?php echo $headingSelector; ?> class="tz-addon-title tz-gallery-title"><?php echo htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></<?php echo $headingSelector; ?>>
+     <?php endif; ?>
+ 
+-    <div class="<?php echo htmlspecialchars(implode(' ', $galleryClasses), ENT_QUOTES, 'UTF-8'); ?>"<?php echo $galleryType === 'masonry' ? ' uk-grid="masonry: pack"' : ''; ?>>
++    <div class="<?php echo htmlspecialchars(implode(' ', $galleryClasses), ENT_QUOTES, 'UTF-8'); ?>"<?php echo $galleryType === 'masonry' ? ' style="--tz-gallery-column-width:' . $masonryWidth . 'px;"' : ''; ?>>
+         <?php foreach ($images as $index => $storedImage) : ?>
+             <?php
+             $storedImage = (string) $storedImage;
+@@ -211,9 +214,6 @@
+ 
+             $caption = isset($captions[$index]) ? trim((string) $captions[$index]) : '';
+             $dataId  = 'gallery-' . $itemId . '-' . $index;
+-            $itemStyle = $galleryType === 'masonry'
+-                ? 'width:' . $masonryWidth . 'px;max-width:100%;'
+-                : '';
+             $imageStyle = $galleryType === 'carousel'
+                 ? 'height:' . $carouselHeight . 'px;'
+                 : '';
+@@ -221,7 +221,7 @@
+             <div class="gallery-listing element"
+                  data-date=""
+                  data-hits=""
+-                 data-title="<?php echo htmlspecialchars($caption, ENT_QUOTES, 'UTF-8'); ?>"<?php echo $itemStyle !== '' ? ' style="' . htmlspecialchars($itemStyle, ENT_QUOTES, 'UTF-8') . '"' : ''; ?>>
++                 data-title="<?php echo htmlspecialchars($caption, ENT_QUOTES, 'UTF-8'); ?>">
+                 <div class="gallery-inner">
+                     <div class="gallery-image"<?php echo $imageStyle !== '' ? ' style="' . htmlspecialchars($imageStyle, ENT_QUOTES, 'UTF-8') . '"' : ''; ?>>
+                         <?php if ($galleryType !== 'carousel') : ?>
