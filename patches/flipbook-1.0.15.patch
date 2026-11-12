@@ -1,0 +1,129 @@
+--- a/css/style.css
++++ b/css/style.css
+@@ -499,7 +499,7 @@
+   overflow: visible !important;
+ }
+ .tz-flipbook-gallery-wrap .tz_portfolio_plus_flipbook_gallery .b-arrow {
+-  z-index: 2 !important;
++  z-index: 40 !important;
+   width: 34px !important;
+   pointer-events: auto;
+ }
+--- a/flipbook_gallery.xml
++++ b/flipbook_gallery.xml
+@@ -7,7 +7,7 @@
+     <license>GNU/GPL v2 or later http://www.gnu.org/licenses/gpl-2.0.html</license>
+     <authorEmail>support@templaza.com</authorEmail>
+     <authorUrl>www.templaza.com/</authorUrl>
+-    <version>1.0.14-j6</version>
++    <version>1.0.15-j6</version>
+     <description>PLG_MEDIATYPE_FLIPBOOK_GALLERY_XML_DESCRIPTION</description>
+ 
+     <tpTargetPlatforms>
+--- a/src/Extension/Flipbook_gallery.php
++++ b/src/Extension/Flipbook_gallery.php
+@@ -89,7 +89,7 @@
+             }
+ 
+             if ($type === 'style') {
+-                $wa->registerStyle($name, $uri);
++                $wa->registerStyle($name, $uri, ['version' => '1.0.15']);
+             } else {
+                 $wa->registerScript($name, $uri, [], [], $dependencies);
+             }
+@@ -97,14 +97,18 @@
+     }
+ 
+     /**
+-     * Do not render the flipbook in the normal media-type position.
+-     * In TZ Portfolio article templates that position is before the main content.
+-     * Rendering is done via onContentDisplayArticleView() because TZ Portfolio
+-     * prints that event after intro/full article content.
++     * TZ 4.1's single-layout builder renders media through this event.
++     * The article-view event is optional and is not dispatched in builder mode.
++     * Keep that event as a fallback; renderFlipbook prevents duplicate output.
+      */
+     public function onContentDisplayMediaType($context, &$article, $params, $page = 0, $layout = 'default')
+     {
+-        return null;
++        if ($context !== 'com_tz_portfolio.article' || !is_object($article)
++            || ($article->type ?? '') !== 'flipbook_gallery') {
++            return null;
++        }
++
++        return $this->renderFlipbook($context, $article, $params, $page, $layout ?: 'default');
+     }
+ 
+     /**
+--- a/src/View/Article/HtmlView.php
++++ b/src/View/Article/HtmlView.php
+@@ -8,7 +8,6 @@
+ defined('_JEXEC') or die;
+ 
+ use Joomla\CMS\Factory;
+-use Joomla\CMS\Language\Text;
+ use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+ use Joomla\Registry\Registry;
+ 
+@@ -85,48 +84,7 @@
+             }
+         }
+ 
+-        $options = [];
+-        $options[] = "hashTitleText: '" . addslashes(Text::_('PLG_MEDIATYPE_FLIPBOOK_GALLERY_PAGE')) . "'";
+-        $options[] = 'autoCenter: true';
+-
+-        $width = $this->getFlipbookParam('mt_flipbook_gallery_width', '100%');
+-        $height = $this->getFlipbookParam('mt_flipbook_gallery_height', '');
+-        $ratio = $this->getFlipbookParam('mt_flipbook_gallery_ratio', '5:3');
+-        $direction = $this->getFlipbookParam('mt_flipbook_gallery_direction', 'LTR');
+-        $paddingPage = $this->getFlipbookParam('mt_flipbook_gallery_padding', '2vw');
+-        $arrows = (int) $this->getFlipbookParam('mt_flipbook_gallery_show_arrow', 1);
+-        $pageSelector = (int) $this->getFlipbookParam('mt_flipbook_gallery_show_page_selector', 1);
+-
+-        if ($width) {
+-            $options[] = "width: '" . addslashes((string) $width) . "'";
+-        }
+-        if ($height) {
+-            $options[] = "height: '" . addslashes((string) $height) . "'";
+-        }
+-        if ($ratio && strpos((string) $ratio, ':') !== false) {
+-            [$rwidth, $rheight] = explode(':', (string) $ratio, 2);
+-            $rwidth = (int) $rwidth;
+-            $rheight = (int) $rheight;
+-            if ($rwidth && $rheight) {
+-                $options[] = "rwidth: {$rwidth}";
+-                $options[] = "rheight: {$rheight}";
+-            }
+-        }
+-        if ($direction) {
+-            $options[] = "direction: '" . addslashes((string) $direction) . "'";
+-        }
+-        if ($paddingPage) {
+-            $options[] = "pagePadding: '" . addslashes((string) $paddingPage) . "'";
+-        }
+-        if ($arrows) {
+-            $options[] = 'arrows: true';
+-        }
+-        if ($pageSelector) {
+-            $options[] = "menu: '#flipbook-gallery-menu'";
+-            $options[] = 'pageSelector: true';
+-        }
+-
+-        $wa->addInlineScript("jQuery(function(\$){\$(document).ready(function(){\$('.tz_portfolio_flipbook_gallery').booklet({" . implode(',', $options) . "});});});");
+-
++        // The template initializes each uniquely identified book once, with its
++        // own page menu. A second global initialization destroys that instance.
+     }
+ }
+--- a/tmpl/article/default.php
++++ b/tmpl/article/default.php
+@@ -47,7 +47,7 @@
+ 
+         $registerStyle = function($name, $uri) use ($wa) {
+             if (!method_exists($wa, 'assetExists') || !$wa->assetExists('style', $name)) {
+-                $wa->registerStyle($name, $uri);
++                $wa->registerStyle($name, $uri, ['version' => '1.0.15']);
+             }
+             $wa->useStyle($name);
+         };
