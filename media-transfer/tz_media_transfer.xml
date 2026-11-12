@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" method="upgrade">
+ <name>COM_TZ_MEDIA_TRANSFER</name><author>Umatstar Lab</author><creationDate>November 2026</creationDate>
+ <license>GNU General Public License version 2 or later</license><version>1.0.0</version><description>COM_TZ_MEDIA_TRANSFER_XML_DESCRIPTION</description>
+ <namespace path="src">Umatstar\Component\TzMediaTransfer</namespace>
+ <install><sql><file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file></sql></install>
+ <update><schemas><schemapath type="mysql">sql/updates/mysql</schemapath></schemas></update>
+ <uninstall><sql><file driver="mysql" charset="utf8">sql/uninstall.mysql.utf8.sql</file></sql></uninstall>
+ <administration>
+  <menu img="class:images">COM_TZ_MEDIA_TRANSFER</menu>
+  <files folder="admin"><folder>services</folder><folder>src</folder><folder>tmpl</folder><folder>sql</folder><filename>access.xml</filename><filename>config.xml</filename></files>
+  <languages folder="admin/language"><language tag="ru-RU">ru-RU/com_tz_media_transfer.ini</language><language tag="ru-RU">ru-RU/com_tz_media_transfer.sys.ini</language><language tag="en-GB">en-GB/com_tz_media_transfer.ini</language><language tag="en-GB">en-GB/com_tz_media_transfer.sys.ini</language></languages>
+ </administration>
+ <media folder="media" destination="com_tz_media_transfer"><filename>app.js</filename><filename>app.css</filename></media>
+</extension>

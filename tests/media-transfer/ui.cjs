@@ -1,0 +1,27 @@
+const {open,api}=require('./helpers.cjs');const assert=require('node:assert/strict');const {execFileSync}=require('node:child_process');
+const snapshot=()=>JSON.parse(execFileSync('docker',['exec','migration273-web-1','php','/tmp/tzmt-inspect.php'],{encoding:'utf8'}));
+(async()=>{let {browser,page,errors}=await open();try{
+ const before=snapshot();await page.waitForFunction(()=>!document.getElementById('tzmt-source').disabled);
+ await page.locator('#tzmt-all').uncheck();await page.locator('#tzmt-materials input[value="91001"]').check();
+ await page.locator('#tzmt-start').click();await page.locator('#tzmt-conflict[open]').waitFor();assert.match(await page.locator('#tzmt-conflict-title').innerText(),/Изображение/);
+ await page.locator('input[name=tzmt-choice][value=keep]').check();assert(!await page.locator('#tzmt-apply-all').isChecked());await page.locator('#tzmt-apply').click();
+ await page.waitForFunction(()=>document.getElementById('tzmt-conflict-title').textContent.includes('подпись'));
+ await page.locator('input[name=tzmt-choice][value=duplicate]').check();await page.locator('#tzmt-apply-all').check();await page.screenshot({path:'/workspace/tzmt-caption-conflict.png'});await page.locator('#tzmt-apply').click();
+ await page.waitForFunction(()=>document.getElementById('tzmt-conflict-title').textContent.includes('Изображение')&&document.getElementById('tzmt-source-file').textContent.includes('b.jpg'));
+ await page.locator('input[name=tzmt-choice][value=replace]').check();await page.locator('#tzmt-apply-all').check();await page.locator('#tzmt-apply').click();
+ await page.waitForFunction(()=>document.getElementById('tzmt-progress-text').textContent.startsWith('Завершено'));
+ assert.match(await page.locator('#tzmt-stats').innerText(),/копий для второй подписи: 2/);assert(!await page.locator('#tzmt-conflict').evaluate(e=>e.open));
+ console.log('PASS UI selection, start button, image/caption dialogs, separate apply-all policies and completion');
+ page.once('dialog',d=>d.accept());await page.locator('#tzmt-undo').click();await page.waitForFunction(()=>document.getElementById('tzmt-progress-text').textContent.startsWith('Отменено'));assert.deepEqual(snapshot(),before);console.log('PASS UI rollback restores all fixture rows and files');
+ await page.locator('#tzmt-scan').click();await page.waitForFunction(()=>!document.getElementById('tzmt-source').disabled);await page.locator('#tzmt-all').uncheck();await page.locator('#tzmt-materials input[value="91008"]').check();await page.locator('#tzmt-start').click();await page.locator('#tzmt-conflict[open]').waitFor();
+ await page.locator('input[name=tzmt-choice][value=keep]').check();await page.locator('#tzmt-apply').click();await page.waitForFunction(()=>document.getElementById('tzmt-conflict-title').textContent.includes('подпись'));
+ assert.match(await page.locator('#tzmt-source-caption').innerText(),/<img src=x onerror=/);assert.equal(await page.locator('#tzmt-source-caption img').count(),0);assert.equal(await page.evaluate(()=>window.tzmtXss),undefined);
+ await page.locator('#tzmt-later').click();assert(!await page.locator('#tzmt-conflict').evaluate(e=>e.open));
+ const r=await api(page,'history');const pending=r.body.data.jobs.find(j=>j.status==='conflict');assert(pending);
+ await page.reload();await page.locator(`#tzmt-history tr[data-job="${pending.id}"] button`).first().click();await page.locator('#tzmt-conflict[open]').waitFor();assert.match(await page.locator('#tzmt-conflict-title').innerText(),/подпись/);
+ await page.setViewportSize({width:390,height:844});await page.locator('input[name=tzmt-choice][value=duplicate]').check();await page.locator('#tzmt-apply').click();await page.waitForFunction(()=>document.getElementById('tzmt-progress-text').textContent.startsWith('Завершено'));assert.equal(await page.evaluate(()=>window.tzmtXss),undefined);
+ page.once('dialog',d=>d.accept());await page.locator('#tzmt-undo').click();await page.waitForFunction(()=>document.getElementById('tzmt-progress-text').textContent.startsWith('Отменено'));assert.deepEqual(snapshot(),before);
+ console.log('PASS literal HTML in caption is inert; pending conflict survives reload and resumes from history');
+ page.once('dialog',d=>d.accept());await page.locator(`#tzmt-history tr[data-job="${pending.id}"] button`).filter({hasText:'Удалить журнал'}).click();await page.waitForFunction(id=>!document.querySelector(`#tzmt-history tr[data-job="${id}"]`),pending.id);assert.deepEqual(snapshot(),before);console.log('PASS history/backup purge does not change gallery images');
+ assert.deepEqual(errors,[]);console.log('All administrator UI checks passed.');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});
