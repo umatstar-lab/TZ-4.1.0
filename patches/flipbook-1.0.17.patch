@@ -1,0 +1,162 @@
+--- a/css/style.css
++++ b/css/style.css
+@@ -560,3 +560,30 @@
+ .tz-flipbook-gallery-wrap .b-counter {
+   z-index: 2 !important;
+ }
++
++/* 1.0.17: fit the book without overriding template title/body spacing. */
++.tz-flipbook-shrink { min-width: 0 !important; }
++.tz-flipbook-gallery-wrap .flipbook-gallery-menu {
++    position: absolute;
++    top: auto;
++    bottom: 100%;
++    left: var(--tz-book-left, 44px);
++    width: var(--tz-book-width, calc(100% - 88px));
++    height: auto;
++    margin: 0;
++    padding: 0;
++    display: flow-root;
++    z-index: 80;
++}
++.tz-flipbook-gallery-wrap .flipbook-gallery-menu .b-selector {
++    height: auto;
++    margin: 0;
++    float: right;
++}
++.tz-flipbook-gallery-wrap .flipbook-gallery-menu .b-current { padding: 4px 10px; line-height: 20px; }
++.tz-flipbook-gallery-wrap .b-counter {
++    line-height: 1.2;
++    max-height: 32%;
++    overflow: auto;
++    display: block;
++}
+--- a/flipbook_gallery.xml
++++ b/flipbook_gallery.xml
+@@ -7,7 +7,7 @@
+     <license>GNU/GPL v2 or later http://www.gnu.org/licenses/gpl-2.0.html</license>
+     <authorEmail>support@templaza.com</authorEmail>
+     <authorUrl>www.templaza.com/</authorUrl>
+-    <version>1.0.16-j6</version>
++    <version>1.0.17-j6</version>
+     <description>PLG_MEDIATYPE_FLIPBOOK_GALLERY_XML_DESCRIPTION</description>
+ 
+     <tpTargetPlatforms>
+--- a/src/Extension/Flipbook_gallery.php
++++ b/src/Extension/Flipbook_gallery.php
+@@ -76,6 +76,7 @@
+             ['script', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.jquery-ui', $base . 'js/jquery-ui-1.10.4.min.js', ['jquery']],
+             ['script', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.easing', $base . 'js/jquery.easing.1.3.js', ['jquery']],
+             ['script', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.booklet', $base . 'js/jquery.booklet.latest.min.js', ['jquery', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.jquery-ui', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.easing']],
++            ['script', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.layout', $base . 'js/layout.js', ['jquery', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.booklet']],
+             ['script', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.style-ui', $base . 'admin/js/style-ui.js', ['jquery']],
+             ['script', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.uploader', $base . 'admin/js/flipbook_gallery_uploader.js', ['jquery']],
+         ];
+@@ -89,9 +90,9 @@
+             }
+ 
+             if ($type === 'style') {
+-                $wa->registerStyle($name, $uri, ['version' => '1.0.16']);
++                $wa->registerStyle($name, $uri, ['version' => '1.0.17']);
+             } else {
+-                $wa->registerScript($name, $uri, ['version' => '1.0.16'], [], $dependencies);
++                $wa->registerScript($name, $uri, ['version' => '1.0.17'], [], $dependencies);
+             }
+         }
+     }
+--- a/src/View/Article/HtmlView.php
++++ b/src/View/Article/HtmlView.php
+@@ -78,6 +78,7 @@
+             'com_tz_portfolio.addon.mediatype.flipbook_gallery.jquery-ui',
+             'com_tz_portfolio.addon.mediatype.flipbook_gallery.easing',
+             'com_tz_portfolio.addon.mediatype.flipbook_gallery.booklet',
++            'com_tz_portfolio.addon.mediatype.flipbook_gallery.layout',
+         ] as $script) {
+             if (!method_exists($wa, 'assetExists') || $wa->assetExists('script', $script)) {
+                 $wa->useScript($script);
+--- a/tmpl/article/default.php
++++ b/tmpl/article/default.php
+@@ -47,14 +47,14 @@
+ 
+         $registerStyle = function($name, $uri) use ($wa) {
+             if (!method_exists($wa, 'assetExists') || !$wa->assetExists('style', $name)) {
+-                $wa->registerStyle($name, $uri, ['version' => '1.0.16']);
++                $wa->registerStyle($name, $uri, ['version' => '1.0.17']);
+             }
+             $wa->useStyle($name);
+         };
+ 
+         $registerScript = function($name, $uri, array $dependencies = ['jquery']) use ($wa) {
+             if (!method_exists($wa, 'assetExists') || !$wa->assetExists('script', $name)) {
+-                $wa->registerScript($name, $uri, ['version' => '1.0.16'], [], $dependencies);
++                $wa->registerScript($name, $uri, ['version' => '1.0.17'], [], $dependencies);
+             }
+             $wa->useScript($name);
+         };
+@@ -67,6 +67,7 @@
+             'com_tz_portfolio.addon.mediatype.flipbook_gallery.jquery-ui',
+             'com_tz_portfolio.addon.mediatype.flipbook_gallery.easing'
+         ]);
++        $registerScript('com_tz_portfolio.addon.mediatype.flipbook_gallery.layout', $base . 'js/layout.js', ['jquery', 'com_tz_portfolio.addon.mediatype.flipbook_gallery.booklet']);
+     }
+ } catch (\Throwable $e) {
+     // Do not break article rendering because of asset registration.
+--- /dev/null
++++ b/js/layout.js
+@@ -0,0 +1,56 @@
++/* Layout integration for TZ Portfolio flipbooks, scoped to pages containing a book. */
++(function ($) {
++    'use strict';
++    var states = new WeakMap();
++    function prepare(book) {
++        var page = book.closest('.tp-item-page, .item-page, article');
++        if (!page) return;
++        page.classList.add('tz-flipbook-page');
++        for (var p = book.parentElement; p && p !== document.body; p = p.parentElement) {
++            p.classList.add('tz-flipbook-shrink');
++        }
++    }
++    function attach(book) {
++        if (states.has(book)) return;
++        prepare(book);
++        var wrap = book.closest('.tz-flipbook-gallery-wrap');
++        var page = book.closest('.tz-flipbook-page');
++        if (!wrap || !page) return;
++        var state = {frame: 0, width: 0};
++        states.set(book, state);
++        function sync() {
++            state.frame = 0;
++            var parent = wrap.parentElement;
++            var style = getComputedStyle(parent);
++            var available = parent.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
++            var left = wrap.getBoundingClientRect().left;
++            var width = Math.max(0, Math.min(available, document.documentElement.clientWidth - left - 4));
++            var wanted = width.toFixed(2) + 'px';
++            if (wrap.style.maxWidth !== wanted) wrap.style.maxWidth = wanted;
++            var shell = book.parentElement;
++            var inner = $(shell).width();
++            if (Math.abs(inner - state.width) > 0.5) {
++                state.width = inner;
++                if ($(book).data('booklet')) $(window).triggerHandler('resize.booklet');
++            }
++            var rect = book.getBoundingClientRect();
++            var outer = wrap.getBoundingClientRect();
++            wrap.style.setProperty('--tz-book-left', (rect.left - outer.left) + 'px');
++            wrap.style.setProperty('--tz-book-width', rect.width + 'px');
++        }
++        function schedule() { if (!state.frame) state.frame = requestAnimationFrame(sync); }
++        state.schedule = schedule;
++        if (window.ResizeObserver) {
++            state.observer = new ResizeObserver(schedule);
++            state.observer.observe(wrap.parentElement);
++            state.observer.observe(book.parentElement);
++        }
++        $(book).on('bookletchange.tzLayout', schedule);
++        window.addEventListener('resize', schedule);
++        window.addEventListener('load', schedule, {once: true});
++        if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
++        schedule();
++    }
++    window.TZFlipbookLayout = {prepare: prepare, attach: attach};
++    $(function () { document.querySelectorAll('.tz_portfolio_flipbook_gallery').forEach(function (book) { prepare(book); attach(book); }); });
++})(jQuery);
