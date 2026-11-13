@@ -1,7 +1,7 @@
 <?php defined('_JEXEC') or die; ?>
 <div id="tzmt" class="tzmt">
  <p class="tzmt-intro">Копирование и перемещение фотографий вместе с подписями между дополнениями TZ Portfolio 4.1+. Обрабатываются выбранные материалы; корзина исключена.</p>
- <p class="tzmt-note">Версия 1.0.7</p>
+ <p class="tzmt-note">Версия 1.0.8</p>
  <div id="tzmt-message" role="status" aria-live="polite"></div>
  <section class="card mb-3"><div class="card-body">
   <h2>1. Выберите дополнения</h2>

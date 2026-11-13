@@ -32,17 +32,39 @@ final class Files {
   }
   return $path;
  }
- private function validateImageFile(string $path,string $name): void {
+ /** Represent binary fragments without invalid UTF-8 or terminal control characters. */
+ private function diagnosticBytes(string $value): string {
+  $out='';foreach(str_split($value) as $byte){$n=ord($byte);$out.=$byte==='\\'?'\\\\':($n>=32&&$n<=126?$byte:sprintf('\\x%02X',$n));}return $out;
+ }
+ private function markerDiagnostic($stream,string $path,int $offset,string $match): string {
+  $marker=str_starts_with($match,'<?=')?'<?=':substr($match,0,5);
+  $fragment='';$before='';$limit=512;
+  if(fseek($stream,max(0,$offset-32))===0){$length=min(32,$offset);if($length>0)$before=(string)fread($stream,$length);$fragment=(string)fread($stream,$limit+1);}
+  $close=strpos($fragment,'?>');$truncated=false;
+  if($close!==false&&$close+2<=$limit)$fragment=substr($fragment,0,$close+2);
+  else{$truncated=strlen($fragment)>$limit;$fragment=substr($fragment,0,$limit);}
+  return "Обнаружен маркер, похожий на PHP-вставку.\nФайл: ".$path
+   ."\nМаркер: ".$this->diagnosticBytes($marker)
+   ."\nБайты маркера (HEX): ".strtoupper(implode(' ',str_split(bin2hex($marker),2)))
+   ."\nСмещение в данных изображения: ".$offset." байт (отсчёт с 0)."
+   ."\nБайты перед маркером: ".$this->diagnosticBytes($before)
+   ."\nЗначение / фрагмент вставки: ".$this->diagnosticBytes($fragment)
+   .($truncated?"\nФрагмент сокращён до ".$limit." байт.":'')
+   .(($close!==false&&$close+2<=$limit)?"\nЗакрывающий маркер ?> найден на смещении ".($offset+$close).".":"\nЗакрывающий маркер ?> в показанном фрагменте не найден.")
+   ."\nСовпадение маркера может быть случайным в бинарных данных и само по себе не подтверждает наличие вредоносного кода.";
+ }
+ private function validateImageFile(string $path,string $name,?string $diagnosticPath=null): void {
+  $diagnosticPath??=$path;
   self::filename($name);
   $types=['jpg'=>IMAGETYPE_JPEG,'jpeg'=>IMAGETYPE_JPEG,'png'=>IMAGETYPE_PNG,'gif'=>IMAGETYPE_GIF,'webp'=>IMAGETYPE_WEBP,'avif'=>IMAGETYPE_AVIF,'bmp'=>IMAGETYPE_BMP,'tif'=>IMAGETYPE_TIFF_II,'tiff'=>IMAGETYPE_TIFF_II];
   $info=@getimagesize($path);$extension=strtolower(pathinfo($name,PATHINFO_EXTENSION));
-  if(!$info || ($info[2]!==$types[$extension] && !(in_array($extension,['tif','tiff'],true)&&$info[2]===IMAGETYPE_TIFF_MM)))throw new \RuntimeException('Содержимое файла не соответствует изображению: '.$name);
+  if(!$info || ($info[2]!==$types[$extension] && !(in_array($extension,['tif','tiff'],true)&&$info[2]===IMAGETYPE_TIFF_MM)))throw new \RuntimeException('Содержимое файла не соответствует изображению. Файл: '.$diagnosticPath);
   $stream=@fopen($path,'rb');if(!$stream)throw new \RuntimeException('Не удалось проверить изображение.');
   try{
-   $tail='';while(!feof($stream)){
+   $tail='';$position=0;while(!feof($stream)){
     $chunk=fread($stream,65536);if($chunk===false)throw new \RuntimeException('Не удалось прочитать изображение.');
-    $data=$tail.$chunk;
-    if(preg_match('/<\?(?:php(?:\s|\/|$)|=)/i',$data))throw new \RuntimeException('В изображении обнаружена PHP-вставка: '.$name);
+    $data=$tail.$chunk;$base=$position-strlen($tail);$position+=strlen($chunk);
+    if(preg_match('/<\?(?:php(?:\s|\/|$)|=)/i',$data,$matches,PREG_OFFSET_CAPTURE))throw new \RuntimeException($this->markerDiagnostic($stream,$diagnosticPath,$base+$matches[0][1],$matches[0][0]));
     $tail=substr($data,-16);
    }
   }finally{fclose($stream);}
@@ -98,7 +120,7 @@ final class Files {
    if(stream_copy_to_stream($in,$out)===false)throw new \RuntimeException('Ошибка копирования файла.');
    fclose($in);$in=null;fclose($out);$out=null;
    if($this->payloadHash($temp,$this->isBackup($target))!==$hash)throw new \RuntimeException('Контрольная сумма копии не совпала. Исходник сохранён.');
-   if(!$this->isBackup($target))$this->validateImageFile($temp,basename($target));
+   if(!$this->isBackup($target))$this->validateImageFile($temp,basename($target),$src);
    $dst=$this->path($target);if(!chmod($temp,$this->isBackup($target)?0600:0644))throw new \RuntimeException('Не удалось установить права файла.');if(!rename($temp,$dst))throw new \RuntimeException('Не удалось записать готовую копию.');
   }finally{if(is_resource($in))fclose($in);if(is_resource($out))fclose($out);if(is_file($temp))@unlink($temp);}
  }

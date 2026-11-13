@@ -13,8 +13,8 @@ class HtmlView extends BaseView {
   $doc=Factory::getApplication()->getDocument();
   $doc->addScriptOptions('com_tz_media_transfer',['url'=>'index.php?option=com_tz_media_transfer&task=api.run&format=raw','token'=>Session::getFormToken()]);
   $wa=$doc->getWebAssetManager();$base=Uri::root().'media/com_tz_media_transfer/';
-  $wa->registerAndUseStyle('com_tz_media_transfer.app',$base.'app.css',['version'=>'1.0.7']);
-  $wa->registerAndUseScript('com_tz_media_transfer.app',$base.'app.js',['version'=>'1.0.7'],['defer'=>true],['core']);
+  $wa->registerAndUseStyle('com_tz_media_transfer.app',$base.'app.css',['version'=>'1.0.8']);
+  $wa->registerAndUseScript('com_tz_media_transfer.app',$base.'app.js',['version'=>'1.0.8'],['defer'=>true],['core']);
   parent::display($tpl);
  }
 }

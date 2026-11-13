@@ -1,0 +1,11 @@
+const {open}=require('./helpers.cjs');const assert=require('node:assert/strict');const {execFileSync}=require('node:child_process');
+const fixture=(script,action)=>execFileSync('docker',['exec','--user','www-data','migration273-web-1','php',script,action],{encoding:'utf8'});
+const snapshot=()=>JSON.parse(fixture('/tmp/tzmt-grid-fixture.php','snapshot'));
+(async()=>{fixture('/tmp/tzmt-grid-fixture.php','prepare');fixture('/tmp/tzmt-diagnostic-file.php','append');const {browser,page,errors}=await open();try{
+ const before=snapshot();await page.locator('#tzmt-source:not(:disabled)').waitFor();await page.locator('#tzmt-source').selectOption('grid_gallery');await page.locator('#tzmt-target').selectOption('gallery');await page.locator('#tzmt-scan').click();await page.waitForFunction(()=>document.getElementById('tzmt-message').textContent.includes('Поиск завершён'));await page.locator('input[name=tzmt-mode][value=move]').check();await page.locator('#tzmt-start').click();
+ const alert=page.locator('#tzmt-message .alert-danger');await alert.waitFor();const message=await alert.innerText();
+ assert(message.includes('/var/www/html/images/tz_portfolio_plus/grid_gallery/91009/legacy.jpg'));assert(message.includes('Маркер: <?='));assert(message.includes('HEX): 3C 3F 3D'));assert(message.includes('\\x00\\xFF<script>'));
+ assert.equal(await alert.locator('script,img').count(),0);assert.equal(await page.evaluate(()=>window.tzmtDiagnosticXss),undefined);assert.equal(await alert.evaluate(e=>getComputedStyle(e).whiteSpace),'pre-wrap');
+ assert(await page.locator('#tzmt-progress-panel').isHidden());assert.deepEqual(snapshot(),before);assert.deepEqual(errors,[]);
+ console.log('PASS failed move displays original full path, marker, hex, byte offset and safe binary/code excerpt as multiline text; no script execution or data/file changes');
+}finally{await browser.close();fixture('/tmp/tzmt-diagnostic-file.php','restore');fixture('/tmp/tzmt-grid-fixture.php','cleanup');}})().catch(e=>{console.error(e);process.exitCode=1});
