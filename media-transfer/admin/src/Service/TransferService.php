@@ -25,12 +25,12 @@ final class TransferService {
  private function now(): string {return gmdate('Y-m-d H:i:s');}
  public function dispatch(string $action,array $p): array {
   if(!$this->user->id||!$this->user->authorise('core.manage','com_tz_media_transfer'))throw new \RuntimeException('Недостаточно прав доступа.',403);
-  foreach(['source','target','mode','job','conflict','choice'] as $key)if(isset($p[$key])&&!is_string($p[$key]))throw new \RuntimeException('Неверный формат параметров.');
+  foreach(['source','target','mode','job','conflict','choice','file_error'] as $key)if(isset($p[$key])&&!is_string($p[$key]))throw new \RuntimeException('Неверный формат параметров.');
   foreach(['activate','all'] as $key)if(isset($p[$key])&&!is_bool($p[$key]))throw new \RuntimeException('Неверный формат флажка.');
   if($action==='inventory')return $this->inventory(true);
   if($action==='catalog')return $this->inventory(false);
   if($action==='history')return $this->history();
-  if(!in_array($action,['start','step','resolve','status','cancel','undo','undoStep','purge'],true))throw new \RuntimeException('Неизвестное действие.');
+  if(!in_array($action,['start','step','resolve','skip','status','cancel','undo','undoStep','purge'],true))throw new \RuntimeException('Неизвестное действие.');
   $this->db->setQuery('SELECT GET_LOCK('.$this->q($this->lock).',0)');
   if((int)$this->db->loadResult()!==1)throw new \RuntimeException('Сейчас выполняется другой запрос переноса. Повторите через несколько секунд.');
   try {
@@ -43,8 +43,9 @@ final class TransferService {
    switch($action){
     case 'step':return $this->step($job);
     case 'resolve':return $this->resolve($job,$p);
+    case 'skip':return $this->skipFile($job,$p);
     case 'status':return $this->publicJob($job);
-    case 'undo':$job['status']='rolling_back';unset($job['state']['error']);$job['state']['undo_total']=($job['state']['undo_count']??0)+(int)$this->db->setQuery('SELECT COUNT(*) FROM #__tz_media_transfer_changes WHERE job_id='.$this->q($job['id'])." AND status IN ('done','undoing')")->loadResult();$job['state']['conflict']=null;$this->saveJob($job);return $this->publicJob($job);
+    case 'undo':$job['status']='rolling_back';unset($job['state']['error']);$job['state']['undo_total']=($job['state']['undo_count']??0)+(int)$this->db->setQuery('SELECT COUNT(*) FROM #__tz_media_transfer_changes WHERE job_id='.$this->q($job['id'])." AND status IN ('done','undoing')")->loadResult();$job['state']['conflict']=null;$job['state']['file_error']=null;$this->saveJob($job);return $this->publicJob($job);
     case 'undoStep':return $this->undoStep($job);
    }
   }finally{$this->db->setQuery('SELECT RELEASE_LOCK('.$this->q($this->lock).')')->loadResult();}
@@ -52,7 +53,7 @@ final class TransferService {
  }
  private function cancel(array $job): array {
   if($job['status']==='rolling_back')throw new \RuntimeException('Дождитесь окончания отката.');
-  if(in_array($job['status'],['running','conflict'],true)){$job['status']='cancelled';$job['state']['conflict']=null;$this->saveJob($job);}
+  if(in_array($job['status'],['running','conflict','file_error'],true)){$job['status']='cancelled';$job['state']['conflict']=null;$job['state']['file_error']=null;$this->saveJob($job);}
   return $this->publicJob($job);
  }
  private function canEdit(int $id,bool $move=false): bool {
@@ -128,14 +129,13 @@ final class TransferService {
    if(!$this->canEdit($id,$mode==='move'))throw new \RuntimeException('Нет прав на изменение выбранного материала.');
    $b=$this->bundle($id);if((int)$b['article']['state']===-2)throw new \RuntimeException('Материалы в корзине исключены из переноса.');
    $data=Adapters::read($source,$b);Adapters::read($target,$b);
-   $data['entries']=array_values(array_filter($data['entries'],fn($entry)=>$this->files->resolve($source,$id,$entry['name'])!==null));
-   if(!$data['entries'])continue;
-   foreach($data['entries'] as $entry)$this->files->assertImage($this->files->resolve($source,$id,$entry['name']));
-   $plans[]=['id'=>$id,'title'=>$b['article']['title'],'entries'=>$data['entries'],'expected'=>$this->fingerprint($b)];$total+=count($data['entries']);
+   $paths=[];$entries=[];foreach($data['entries'] as $entry){$path=$this->files->resolve($source,$id,$entry['name']);if($path!==null){$entries[]=$entry;$paths[$entry['name']]=$path;}}
+   $data['entries']=$entries;if(!$entries)continue;
+   $plans[]=['id'=>$id,'title'=>$b['article']['title'],'entries'=>$data['entries'],'paths'=>$paths,'expected'=>$this->fingerprint($b)];$total+=count($data['entries']);
   }
   if(!$total)throw new \RuntimeException('В выбранных материалах нет изображений источника.');
   $job=['id'=>bin2hex(random_bytes(16)),'user_id'=>(int)$this->user->id,'status'=>'running','created'=>$this->now(),'updated'=>$this->now(),
-   'state'=>['source'=>$source,'target'=>$target,'mode'=>$mode,'activate'=>!empty($p['activate']),'plans'=>$plans,'article'=>0,'item'=>0,'total'=>$total,'processed'=>0,'policies'=>[],'choices'=>[],'conflict'=>null,'warnings'=>[],
+   'state'=>['source'=>$source,'target'=>$target,'mode'=>$mode,'activate'=>!empty($p['activate']),'plans'=>$plans,'article'=>0,'item'=>0,'total'=>$total,'processed'=>0,'policies'=>[],'choices'=>[],'conflict'=>null,'file_error'=>null,'skip_file_errors'=>false,'skipped_files'=>[],'warnings'=>[],
     'stats'=>['copied'=>0,'moved'=>0,'skipped'=>0,'replaced'=>0,'renamed'=>0,'caption_copies'=>0],'results'=>[]]];
   $this->execute('INSERT INTO #__tz_media_transfer_jobs (id,user_id,status,state,created,updated) VALUES ('.$this->q($job['id']).','.$job['user_id'].','.$this->q($job['status']).','.$this->q(Adapters::encode($job['state'])).','.$this->q($job['created']).','.$this->q($job['updated']).')');
   return $this->publicJob($job);
@@ -148,11 +148,11 @@ final class TransferService {
  }
  private function saveJob(array $job): void {$this->update('#__tz_media_transfer_jobs',['status'=>$job['status'],'state'=>Adapters::encode($job['state']),'updated'=>$this->now()],'id='.$this->q($job['id']));}
  private function publicJob(array $job): array {
-  $s=$job['state'];return ['id'=>$job['id'],'status'=>$job['status'],'source'=>$s['source'],'target'=>$s['target'],'mode'=>$s['mode'],'activate'=>$s['activate'],'total'=>$s['total'],'processed'=>$s['processed'],'stats'=>$s['stats'],'warnings'=>$s['warnings'],'error'=>$s['error']??null,'conflict'=>$s['conflict'],'results'=>$s['results'],'created'=>$job['created'],'undo_processed'=>$s['undo_count']??0,'undo_total'=>$s['undo_total']??0];
+  $s=$job['state'];return ['id'=>$job['id'],'status'=>$job['status'],'source'=>$s['source'],'target'=>$s['target'],'mode'=>$s['mode'],'activate'=>$s['activate'],'total'=>$s['total'],'processed'=>$s['processed'],'stats'=>$s['stats'],'warnings'=>$s['warnings'],'error'=>$s['error']??null,'conflict'=>$s['conflict'],'file_error'=>$s['file_error']??null,'skipped_files'=>$s['skipped_files']??[],'results'=>$s['results'],'created'=>$job['created'],'undo_processed'=>$s['undo_count']??0,'undo_total'=>$s['undo_total']??0];
  }
  private function history(): array {
   $rows=$this->rows('SELECT * FROM #__tz_media_transfer_jobs WHERE user_id='.(int)$this->user->id.' ORDER BY created DESC LIMIT 50');$out=[];
-  foreach($rows as $j){$j['state']=Adapters::json($j['state']);$v=$this->publicJob($j);unset($v['results'],$v['conflict']);$out[]=$v;}
+  foreach($rows as $j){$j['state']=Adapters::json($j['state']);$v=$this->publicJob($j);unset($v['results'],$v['conflict'],$v['file_error'],$v['skipped_files']);$out[]=$v;}
   return ['jobs'=>$out];
  }
  private function resolve(array $job,array $p): array {
@@ -163,6 +163,18 @@ final class TransferService {
   $s['choices'][$c['kind']]=$choice;if(!empty($p['all']))$s['policies'][$c['kind']]=$choice;
   $s['conflict']=null;$job['status']='running';$this->saveJob($job);return $this->publicJob($job);
  }
+ private function skipFile(array $job,array $p): array {
+  $error=$job['state']['file_error']??null;
+  if($job['status']!=='file_error'||!$error||!hash_equals($error['id'],(string)($p['file_error']??'')))throw new \RuntimeException('Это сообщение об ошибке уже не актуально. Обновите состояние операции.');
+  if(!empty($p['all']))$job['state']['skip_file_errors']=true;
+  $this->recordSkip($job,$error['path'],$error['message'],'file_error');return $this->publicJob($job);
+ }
+ private function recordSkip(array &$job,string $path,string $reason,string $kind): void {
+  $s=&$job['state'];$plan=$s['plans'][$s['article']];$item=$plan['entries'][$s['item']];
+  $s['skipped_files'][]=['article'=>$plan['id'],'title'=>$plan['title'],'name'=>$item['name'],'path'=>$path,'reason'=>$reason,'kind'=>$kind];
+  $s['stats']['skipped']++;$s['file_error']=null;$job['status']='running';
+  $this->advance($job,'Пропущено: '.$reason,$item['name']);if($job['status']==='done')$this->clearCache($job);$this->saveJob($job);
+ }
  private function choose(array &$job,string $kind,array $details): ?string {
   $s=&$job['state'];$choice=$s['choices'][$kind]??$s['policies'][$kind]??null;
   if($choice!==null)return $choice;
@@ -171,19 +183,20 @@ final class TransferService {
  private function advance(array &$job,string $result,string $name): void {
   $s=&$job['state'];$plan=$s['plans'][$s['article']];
   $s['results'][]=['article'=>$plan['id'],'title'=>$plan['title'],'name'=>$name,'result'=>$result];
-  $s['processed']++;$s['item']++;$s['choices']=[];$s['conflict']=null;
+  $s['processed']++;$s['item']++;$s['choices']=[];$s['conflict']=null;$s['file_error']=null;
   if($s['item']>=count($plan['entries'])){$s['article']++;$s['item']=0;}
   if($s['article']>=count($s['plans']))$job['status']='done';
  }
  private function step(array $job): array {
   if($job['status']!=='running')return $this->publicJob($job);
+  $src=null;$cursor=$job['state']['processed'];
   try{
    $s=&$job['state'];$this->pair($s['source'],$s['target']);if($s['activate']&&!$this->available[$s['target']]['enabled'])throw new \RuntimeException('Дополнение назначения было выключено. Включите его перед продолжением.');$plan=$s['plans'][$s['article']];$id=(int)$plan['id'];
    if(!$this->canEdit($id,$s['mode']==='move'))throw new \RuntimeException('Права доступа к материалу изменились.');
    $before=$this->bundle($id);
    if((int)$before['article']['state']===-2 || !hash_equals($plan['expected'],$this->fingerprint($before)))throw new \RuntimeException('Материал '.$id.' изменён после начала операции. Остановитесь, проверьте изменения и создайте новую операцию.');
    $item=$plan['entries'][$s['item']];$src=$this->files->resolve($s['source'],$id,$item['name']);
-   if(!$src)throw new \RuntimeException('Исходный файл больше не существует: '.$item['name']);$this->files->assertImage($src);$srcHash=$this->files->hash($src);
+   if(!$src)throw new FileProblem('Исходный файл больше не существует: '.$item['name']);$this->files->assertImage($src);$srcHash=$this->files->hash($src);
    $source=Adapters::read($s['source'],$before);$dest=Adapters::read($s['target'],$before);
    $index=null;$dst=null;$same=false;
    // Filename collision wins; otherwise compare bytes, including differently named files.
@@ -199,7 +212,7 @@ final class TransferService {
    if($collision){
     $details=['article'=>$id,'title'=>$plan['title'],'same_content'=>$same,'source'=>$this->files->info($src,$item['caption']),'target'=>$this->files->info($dst,$targetCaption)];$details['target']['name']=$targetName;
     $imageChoice=$this->choose($job,'image',$details);if($imageChoice===null)return $this->publicJob($job);
-    if($imageChoice==='keep'&&!$same){$s['stats']['skipped']++;$this->advance($job,'Пропущено: оставлен существующий файл',$item['name']);$this->saveJob($job);return $this->publicJob($job);}
+    if($imageChoice==='keep'&&!$same){$this->recordSkip($job,$this->files->displayPath($src),'Оставлен существующий файл назначения','collision');return $this->publicJob($job);}
    }
    $append=!$collision||$imageChoice==='rename';$name=$append?($collision?$this->files->unique($s['target'],$id,$item['name'],$dest['entries']):$item['name']):$targetName;
    $caption=$item['caption'];$captionChoice=null;
@@ -248,7 +261,7 @@ final class TransferService {
    $this->files->claimBackups();
    try{
     foreach($files as $file)if($file['after_hash']!==null)$this->files->atomicCopy($file['source'],$file['path'],$file['after_hash']);
-    if($this->files->hash($src)!==$srcHash)throw new \RuntimeException('Исходный файл изменился во время копирования.');
+    if($this->files->hash($src)!==$srcHash)throw new FileProblem('Исходный файл изменился во время копирования.');
     $this->db->transactionStart();
     try{
      $current=$this->bundle($id,true);if($this->fingerprint($current)!==$this->fingerprint($before))throw new \RuntimeException('Материал изменён во время копирования. Копирование отменено.');
@@ -259,12 +272,27 @@ final class TransferService {
     }catch(\Throwable $e){$this->db->transactionRollback();throw $e;}
    }catch(\Throwable $e){$this->recoverPrepared($job['id']);throw $e;}
    $this->cleanup($job['id']);$finished=$this->job($job['id']);if($finished['status']==='done'){$this->clearCache($finished);$this->saveJob($finished);}return $this->publicJob($finished);
+  }catch(FileProblem $e){
+   $this->files->discardUnclaimed();
+   try{$this->recoverPrepared($job['id']);}catch(\Throwable $recovery){return $this->fatalJob($job['id'],'Не удалось восстановить прерванную запись. Требуется проверка: '.$recovery->getMessage());}
+   $stored=$this->job($job['id']);
+   if($stored['state']['processed']!==$cursor)return $this->fatalJob($job['id'],$e->getMessage());
+   $s=&$stored['state'];$plan=$s['plans'][$s['article']];$item=$plan['entries'][$s['item']];
+   $relative=$src??($plan['paths'][$item['name']]??$this->files->destination($s['source'],(int)$plan['id'],$item['name']));
+   $path=$this->files->displayPath($relative);
+   $s['file_error']=['id'=>bin2hex(random_bytes(12)),'article'=>$plan['id'],'title'=>$plan['title'],'name'=>$item['name'],'path'=>$path,'message'=>$e->getMessage()];
+   $s['conflict']=null;$s['choices']=[];$stored['status']='file_error';
+   if(!empty($s['skip_file_errors']))$this->recordSkip($stored,$path,$e->getMessage(),'file_error');else $this->saveJob($stored);
+   return $this->publicJob($stored);
   }catch(\Throwable $e){
    $this->files->discardUnclaimed();
    $stored=$this->job($job['id']);$stored['status']='error';$stored['state']['error']=get_class($e)===\RuntimeException::class?$e->getMessage():'Не удалось сохранить изменения. Исходные данные и резервные копии сохранены.';$stored['state']['conflict']=null;$this->saveJob($stored);
    if(get_class($e)!==\RuntimeException::class)\Joomla\CMS\Log\Log::add((string)$e,\Joomla\CMS\Log\Log::ERROR,'com_tz_media_transfer');
    return $this->publicJob($stored);
   }
+ }
+ private function fatalJob(string $id,string $message): array {
+  $job=$this->job($id);$job['status']='error';$job['state']['error']=$message;$job['state']['conflict']=null;$job['state']['file_error']=null;$this->saveJob($job);return $this->publicJob($job);
  }
  private function filePlan(string $source,string $target,string $hash): array {
   $exists=$this->files->exists($target);$before=$exists?$this->files->hash($target):null;return ['source'=>$source,'path'=>$target,'before_hash'=>$before,'backup'=>$exists?$this->files->backup($target,$before):null,'after_hash'=>$hash];
@@ -333,7 +361,7 @@ final class TransferService {
   }catch(\Throwable $e){$job['state']['warnings'][]='Данные сохранены. Очистите кеш Joomla вручную, если на сайте ещё видны старые изображения.';}
  }
  private function purge(array $job): array {
-  if(in_array($job['status'],['running','conflict','rolling_back'],true))throw new \RuntimeException('Сначала остановите или завершите операцию.');
+  if(in_array($job['status'],['running','conflict','file_error','rolling_back'],true))throw new \RuntimeException('Сначала остановите или завершите операцию.');
   foreach($this->rows('SELECT data,status FROM #__tz_media_transfer_changes WHERE job_id='.$this->q($job['id'])) as $row){
    if(in_array($row['status'],['prepared','undoing'],true))throw new \RuntimeException('Сначала завершите восстановление прерванной операции или откат.');
    foreach(Adapters::json($row['data'])['files'] as $f)if($f['backup']&&$this->files->exists($f['backup'])){

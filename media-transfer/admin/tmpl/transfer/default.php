@@ -1,7 +1,7 @@
 <?php defined('_JEXEC') or die; ?>
 <div id="tzmt" class="tzmt">
  <p class="tzmt-intro">Копирование и перемещение фотографий вместе с подписями между дополнениями TZ Portfolio 4.1+. Обрабатываются выбранные материалы; корзина исключена.</p>
- <p class="tzmt-note">Версия 1.0.8</p>
+ <p class="tzmt-note">Версия 1.0.9</p>
  <div id="tzmt-message" role="status" aria-live="polite"></div>
  <section class="card mb-3"><div class="card-body">
   <h2>1. Выберите дополнения</h2>
@@ -26,12 +26,18 @@
   <progress id="tzmt-progress" max="100" value="0" aria-label="Ход обработки"></progress>
   <p id="tzmt-stats"></p><p id="tzmt-warning" class="text-warning"></p>
   <div class="tzmt-actions"><button id="tzmt-resume" class="btn btn-primary" type="button" hidden>Продолжить</button><button id="tzmt-cancel" class="btn btn-outline-danger" type="button">Остановить</button><button id="tzmt-undo" class="btn btn-outline-secondary" type="button" hidden>Откатить операцию</button></div>
+  <section id="tzmt-skipped-panel" hidden><h3>Отчёт о пропущенных файлах</h3><p id="tzmt-skipped-total"></p><div class="tzmt-table"><table class="table"><thead><tr><th>Полный путь исходного файла</th><th>Причина пропуска</th></tr></thead><tbody id="tzmt-skipped-files"></tbody></table></div></section>
   <details><summary>Обработанные файлы</summary><div class="tzmt-table"><table class="table"><thead><tr><th>Материал</th><th>Файл</th><th>Результат</th></tr></thead><tbody id="tzmt-results"></tbody></table></div></details>
  </div></section>
  <section class="card"><div class="card-body"><div class="tzmt-actions"><h2>Журнал операций</h2><button id="tzmt-refresh-history" class="btn btn-sm btn-outline-secondary" type="button">Обновить журнал</button></div>
   <p class="tzmt-note">Решение «Применить ко всем» действует только в одной операции и отдельно для файлов и подписей. Пропущенные файлы остаются в источнике. После закрытия страницы незавершённую операцию можно продолжить из журнала. Резервные копии для отката занимают место до удаления журнала.</p>
   <div class="tzmt-table"><table class="table"><thead><tr><th>Дата</th><th>Направление</th><th>Состояние</th><th>Обработано</th><th>Действия</th></tr></thead><tbody id="tzmt-history"></tbody></table></div>
  </div></section>
+ <dialog id="tzmt-file-error" aria-labelledby="tzmt-file-error-title">
+  <h2 id="tzmt-file-error-title">Ошибка обработки файла</h2><p id="tzmt-file-error-path"></p><pre id="tzmt-file-error-message"></pre>
+  <p class="tzmt-note">«Пропустить все» пропустит текущий и следующие файлы с ошибками только в этой операции. Исправные файлы продолжат обрабатываться. Пропущенные оригиналы останутся в источнике.</p>
+  <div class="tzmt-actions"><button id="tzmt-file-error-cancel" class="btn btn-outline-danger" type="button">Отменить</button><button id="tzmt-file-error-skip" class="btn btn-outline-secondary" type="button">Пропустить файл</button><button id="tzmt-file-error-all" class="btn btn-primary" type="button">Пропустить все</button></div>
+ </dialog>
  <dialog id="tzmt-conflict" aria-labelledby="tzmt-conflict-title">
   <form id="tzmt-conflict-form">
    <h2 id="tzmt-conflict-title"></h2><p id="tzmt-conflict-description"></p>

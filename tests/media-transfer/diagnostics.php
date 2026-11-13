@@ -16,7 +16,7 @@ try{
  check(str_contains($message,'Смещение в данных изображения: '.strlen($png).' байт'),'byte offset is zero-based and exact');
  check(str_contains($message,'Значение / фрагмент вставки: '.$php),'entire short insertion included without interpreting its value');
  $offset=strlen($png)+strpos($php,'?>');check(str_contains($message,'?> найден на смещении '.$offset),'closing marker offset included');
- file_put_contents($path,$png.'<?='."\x00\xFF\x1B".'<script>window.tzmtDiagnosticXss=1</script>' );
+ file_put_contents($path,$png.'<?= "'."\x00\xFF\x1B".'<script>window.tzmtDiagnosticXss=1</script>" ?>' );
  $message=error(fn()=>$files->assertImage($dir.'/008.png'));
  check(str_contains($message,'Маркер: <?=')&&str_contains($message,'3C 3F 3D'),'short echo marker identified');
  check(str_contains($message,'\\x00\\xFF\\x1B'),'binary and control bytes escaped exactly');
