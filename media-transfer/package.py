@@ -2,7 +2,7 @@
 from pathlib import Path
 import zipfile
 root=Path(__file__).resolve().parent
-out=root.parent/'com_tz_media_transfer_v1.0.0.zip'
+out=root.parent/'com_tz_media_transfer_v1.0.1.zip'
 files=[root/'tz_media_transfer.xml']
 for folder in ['admin','media']:
     files.extend(p for p in (root/folder).rglob('*') if p.is_file())

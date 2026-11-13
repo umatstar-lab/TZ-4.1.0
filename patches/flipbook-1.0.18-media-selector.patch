@@ -1,0 +1,18 @@
+diff -rN -U0 a/flipbook_gallery.xml b/flipbook_gallery.xml
+--- a/flipbook_gallery.xml	2026-11-12 14:48:35.819131228 +0000
++++ b/flipbook_gallery.xml	2026-11-13 07:15:22.554627298 +0000
+@@ -10 +10 @@
+-    <version>1.0.17-j6</version>
++    <version>1.0.18-j6</version>
+diff -rN -U0 a/src/Extension/Flipbook_gallery.php b/src/Extension/Flipbook_gallery.php
+--- a/src/Extension/Flipbook_gallery.php	2026-11-12 14:48:35.818419866 +0000
++++ b/src/Extension/Flipbook_gallery.php	2026-11-13 07:15:22.554538747 +0000
+@@ -93 +93 @@
+-                $wa->registerStyle($name, $uri, ['version' => '1.0.17']);
++                $wa->registerStyle($name, $uri, ['version' => '1.0.18']);
+@@ -95 +95 @@
+-                $wa->registerScript($name, $uri, ['version' => '1.0.17'], [], $dependencies);
++                $wa->registerScript($name, $uri, ['version' => '1.0.18'], [], $dependencies);
+@@ -139 +139 @@
+-        if (!$article) {
++        if (!is_object($article) || ($article->type ?? '') !== 'flipbook_gallery') {

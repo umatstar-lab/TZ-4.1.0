@@ -1,0 +1,58 @@
+diff -rN -U0 a/gallery.xml b/gallery.xml
+--- a/gallery.xml	2026-11-10 15:17:58.065691347 +0000
++++ b/gallery.xml	2026-11-13 07:15:22.554415585 +0000
+@@ -10 +10 @@
+-    <version>2.1.4</version>
++    <version>2.1.5</version>
+diff -rN -U0 a/src/Extension/Gallery.php b/src/Extension/Gallery.php
+--- a/src/Extension/Gallery.php	2026-11-10 15:16:38.589666684 +0000
++++ b/src/Extension/Gallery.php	2026-11-13 07:19:10.897504095 +0000
+@@ -103,0 +104,37 @@
++    /** Add a selector option without registering a second media editor tab. */
++    public function onContentPrepareForm($form, $data)
++    {
++        $result = parent::onContentPrepareForm($form, $data);
++        if (!in_array($form->getName(), ['com_tz_portfolio.article', 'com_tz_portfolio.form'], true)) {
++            return $result;
++        }
++        $xml = $form->getXml();
++        foreach ($xml->xpath('//field[@name="type"]') ?: [] as $field) {
++            if (strtolower((string) $field['type']) !== 'mediatypes'
++                || $field->xpath('option[@value="content_gallery"]')) {
++                continue;
++            }
++            $language = Factory::getApplication()->getLanguage()->getTag();
++            $label = in_array(substr($language, 0, 2), ['ru', 'uk'], true) ? 'Галерея' : 'Gallery';
++            $option = $field->addChild('option', $label);
++            $option->addAttribute('value', 'content_gallery');
++        }
++        return $result;
++    }
++
++    /** Render in the standard Media block, in both single-layout modes. */
++    public function onContentDisplayMediaType($context, &$article, $params, $page = 0, $layout = 'default')
++    {
++        if ($context !== 'com_tz_portfolio.article' || !is_object($article)
++            || ($article->type ?? '') !== 'content_gallery') {
++            return null;
++        }
++        return $this->_getViewHtml($context, $article, $params, $layout ?: 'default') ?: null;
++    }
++
++    /** The content hook must not duplicate the Media block. */
++    public function onContentDisplayArticleView($context, &$article, $params, $page = 0, $layout = 'default')
++    {
++        return null;
++    }
++
+@@ -111,0 +149,5 @@
++        if ($context === 'com_tz_portfolio.article' || !is_object($article)
++            || ($article->type ?? '') !== 'content_gallery') {
++            return null;
++        }
++
+@@ -128,4 +169,0 @@
+-            // TZ Portfolio 4.1 triggers this event for the single article view
+-            // with the article context. Without it the gallery model is never
+-            // created, so no add-on data is loaded on the frontend.
+-            'com_tz_portfolio.article',

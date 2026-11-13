@@ -49,7 +49,7 @@ final class Adapters {
  }
  public static function activate(string $key,array &$bundle): void {
   $d=self::definition($key);$params=self::json($bundle['article']['attribs']);
-  $bundle['article']['type']=$d['storage']==='media'?$key:'none';
+  $bundle['article']['type']=$d['storage']==='media'?$key:'content_gallery';
   $params[$d['storage']==='media'?'mt_'.$key.'_show':'mt_gallery_show']='1';
   $bundle['article']['attribs']=self::encode($params);
   if($d['storage']==='addon')$bundle['gallery']['published']=1;

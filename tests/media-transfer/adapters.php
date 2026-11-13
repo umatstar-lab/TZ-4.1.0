@@ -13,3 +13,6 @@ check($m['grid_gallery']['title']===['Стара підпис','Підпис А'
 $gallery=['entries'=>[['name'=>'x.jpg','caption'=>'<b>text</b>']],'featured'=>'x.jpg'];Adapters::write('gallery',$b,$gallery,23);check(Adapters::read('gallery',$b)===$gallery,'Content Gallery round trip without HTML interpretation');
 $b['gallery']['value']=Adapters::encode(['gallery_content'=>['gallery_image'=>['x.jpg'],'caption'=>['legacy caption']]]);check(Adapters::read('gallery',$b)['entries'][0]['caption']==='legacy caption','legacy Gallery caption alias read safely');
 foreach(['../escape.jpg','x.php','x.jpg/../../a.jpg',"bad\0.jpg"] as $name){$blocked=false;try{Files::filename($name);}catch(RuntimeException $e){$blocked=true;}check($blocked,'unsafe filename rejected');}
+
+Adapters::activate('gallery',$b);check($b['article']['type']==='content_gallery','Content Gallery activation selects its explicit media type');
+Adapters::activate('flipbook_gallery',$b);check($b['article']['type']==='flipbook_gallery','Flipbook activation retains its media type');
