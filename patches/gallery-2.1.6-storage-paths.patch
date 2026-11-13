@@ -1,0 +1,73 @@
+diff -rN -U0 a/admin/forms/gallery.xml b/admin/forms/gallery.xml
+--- a/admin/forms/gallery.xml	2026-11-10 15:16:38.591109674 +0000
++++ b/admin/forms/gallery.xml	2026-11-13 08:29:29.712265826 +0000
+@@ -33 +33 @@
+-                <field type="tzgallery" name="gallery_content" default=""
++                <field type="storedgallery" name="gallery_content" addfieldprefix="TemPlaza\Component\TZ_Portfolio\AddOn\Content\Gallery\Administrator\Field" default=""
+diff -rN -U0 a/admin/src/Field/StoredgalleryField.php b/admin/src/Field/StoredgalleryField.php
+--- a/admin/src/Field/StoredgalleryField.php	1970-01-01 00:00:00.000000000 +0000
++++ b/admin/src/Field/StoredgalleryField.php	2026-11-13 08:29:53.032568975 +0000
+@@ -0,0 +1,27 @@
++<?php
++namespace TemPlaza\Component\TZ_Portfolio\AddOn\Content\Gallery\Administrator\Field;
++defined('_JEXEC') or die;
++use Joomla\CMS\Uri\Uri;
++use TemPlaza\Component\TZ_Portfolio\Administrator\Field\TzgalleryField;
++/** Keep the core uploader, resolving stored previews independently of Portfolio+. */
++class StoredgalleryField extends TzgalleryField
++{
++    protected function getInput()
++    {
++        $html = parent::getInput();
++        return preg_replace_callback('~src="[^"]*/images/tz_portfolio_plus/gallery/([0-9]+)/([^"<>]*)"~', static function ($match) {
++            $name = rawurldecode(html_entity_decode($match[2], ENT_QUOTES, 'UTF-8'));
++            if ($name === '' || basename($name) !== $name || str_contains($name, '\\') || str_contains($name, "\0")) {
++                return $match[0];
++            }
++            foreach (['com_tz_portfolio', 'tz_portfolio', 'tz_portfolio_plus'] as $directory) {
++                $path = 'images/' . $directory . '/gallery/' . (int) $match[1] . '/' . $name;
++                if (is_file(JPATH_ROOT . '/' . $path)) {
++                    $url = rtrim(Uri::root(), '/') . '/' . implode('/', array_map('rawurlencode', explode('/', $path)));
++                    return 'src="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '"';
++                }
++            }
++            return $match[0];
++        }, $html);
++    }
++}
+diff -rN -U0 a/admin/src/Model/GalleryModel.php b/admin/src/Model/GalleryModel.php
+--- a/admin/src/Model/GalleryModel.php	2026-11-10 15:16:38.594246025 +0000
++++ b/admin/src/Model/GalleryModel.php	2026-11-13 08:29:29.712020213 +0000
+@@ -30,2 +30 @@
+-     * The core TZ gallery field in 4.1 still previews this legacy directory.
+-     * New uploads are therefore stored here, while reads support every known path.
++     * Keep new files outside the directory deleted by Portfolio+ uninstall.
+@@ -33 +32 @@
+-    private const WRITE_DIRECTORY = 'tz_portfolio_plus';
++    private const WRITE_DIRECTORY = 'com_tz_portfolio';
+@@ -37 +35,0 @@
+-        'tz_portfolio_plus',
+@@ -39,0 +38 @@
++        'tz_portfolio_plus',
+@@ -109,3 +108 @@
+-        // Images copied by TZ Portfolio 4.1 live in com_tz_portfolio. Mirror
+-        // referenced files back to the legacy directory so the edit form,
+-        // future resizes and newly uploaded files all keep working together.
++        // Preserve legacy references by copying existing originals to the current directory.
+diff -rN -U0 a/gallery.xml b/gallery.xml
+--- a/gallery.xml	2026-11-13 07:15:22.554415585 +0000
++++ b/gallery.xml	2026-11-13 08:29:29.712344252 +0000
+@@ -10 +10 @@
+-    <version>2.1.5</version>
++    <version>2.1.6</version>
+diff -rN -U0 a/tmpl/article/default.php b/tmpl/article/default.php
+--- a/tmpl/article/default.php	2026-11-10 15:21:27.801245436 +0000
++++ b/tmpl/article/default.php	2026-11-13 08:29:29.712161532 +0000
+@@ -136,3 +135,0 @@
+-        // Prefer the directory used by new gallery uploads and the edit form.
+-        'images/tz_portfolio_plus/gallery/' . $articleId . '/',
+-        // TZ Portfolio 4.1 migration copy.
+@@ -140 +136,0 @@
+-        // Compatibility with the intermediate path used by older custom fixes.
+@@ -141,0 +138 @@
++        'images/tz_portfolio_plus/gallery/' . $articleId . '/',

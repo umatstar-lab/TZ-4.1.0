@@ -22,7 +22,7 @@ const flip=(s,id)=>JSON.parse(s.articles[id].media).flipbook_gallery;
  assert.deepEqual(g.gallery_image,['a.jpg','b.jpg','a__copy_1.jpg','фото з підписом.jpg','samehash__copy_1.jpg']);assert.equal(g.gallery_image_title[0],'Старий підпис A');assert.equal(g.gallery_image_title[2],'Новий підпис A');assert.equal(g.gallery_image_title[4],'Інша підпис того ж фото');
  assert.equal(after.files['images/tz_portfolio_plus/gallery/91001/b.jpg'],before.files['images/tz_portfolio/flipbook_gallery/91001/b.jpg']);
  assert.equal(after.files['images/tz_portfolio_plus/gallery/91001/resize/b_xs.jpg'],before.files['images/tz_portfolio/flipbook_gallery/91001/resize/b_xs.jpg']);
- assert.equal(after.files['images/tz_portfolio_plus/gallery/91001/resize/a__copy_1_xs.jpg'],before.files['images/tz_portfolio/flipbook_gallery/91001/resize/a_xs.jpg']);
+ assert.equal(after.files['images/com_tz_portfolio/gallery/91001/resize/a__copy_1_xs.jpg'],before.files['images/tz_portfolio/flipbook_gallery/91001/resize/a_xs.jpg']);
  console.log('PASS copy, replacement, hashes, thumbnails, separate photos for two captions, independent apply-all policies');
  job=await call(page,'undo',{job:job.id});for(let i=0;i<20&&job.status==='rolling_back';i++)job=await call(page,'undoStep',{job:job.id});assert.equal(job.status,'undone',JSON.stringify(job));assert.deepEqual(snapshot(),before);console.log('PASS complete copy rollback restores metadata and file checksums exactly');
  job=await call(page,'start',{source:'flipbook_gallery',target:'gallery',mode:'move',activate:true,articles:[91002]});

@@ -1,0 +1,69 @@
+diff -rN -U0 a/admin/src/Controller/GalleryController.php b/admin/src/Controller/GalleryController.php
+--- a/admin/src/Controller/GalleryController.php	2026-06-18 10:12:58.000000000 +0000
++++ b/admin/src/Controller/GalleryController.php	2026-11-13 08:29:29.711631387 +0000
+@@ -143,6 +143,4 @@
+-                $folder = JPATH_ROOT . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR
+-                    . 'tz_portfolio' . DIRECTORY_SEPARATOR . 'flipbook_gallery' . DIRECTORY_SEPARATOR . $articleId;
+-
+-                if (!Folder::exists($folder)) {
+-                    $folder = JPATH_ROOT . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR
+-                        . 'tz_portfolio_plus' . DIRECTORY_SEPARATOR . 'flipbook_gallery' . DIRECTORY_SEPARATOR . $articleId;
++                $folder = JPATH_ROOT . '/images/com_tz_portfolio/flipbook_gallery/' . $articleId;
++                foreach (['com_tz_portfolio', 'tz_portfolio', 'tz_portfolio_plus'] as $directory) {
++                    $candidate = JPATH_ROOT . '/images/' . $directory . '/flipbook_gallery/' . $articleId;
++                    if (File::exists($candidate . '/' . $file)) {$folder = $candidate; break;}
+diff -rN -U0 a/admin/src/Model/Flipbook_galleryModel.php b/admin/src/Model/Flipbook_galleryModel.php
+--- a/admin/src/Model/Flipbook_galleryModel.php	2026-06-18 10:12:58.000000000 +0000
++++ b/admin/src/Model/Flipbook_galleryModel.php	2026-11-13 08:29:29.711561844 +0000
+@@ -37 +37 @@
+-            . 'tz_portfolio' . DIRECTORY_SEPARATOR . 'flipbook_gallery';
++            . 'com_tz_portfolio' . DIRECTORY_SEPARATOR . 'flipbook_gallery';
+@@ -72,3 +72,3 @@
+-            if (!Folder::exists($oldFolder)) {
+-                $oldFolder = JPATH_ROOT . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR
+-                    . 'tz_portfolio_plus' . DIRECTORY_SEPARATOR . 'flipbook_gallery' . DIRECTORY_SEPARATOR . $oldId;
++            foreach (['com_tz_portfolio', 'tz_portfolio', 'tz_portfolio_plus'] as $directory) {
++                $candidate = JPATH_ROOT . '/images/' . $directory . '/flipbook_gallery/' . $oldId;
++                if (Folder::exists($candidate)) {$oldFolder = $candidate; break;}
+@@ -165 +165 @@
+-                . 'tz_portfolio' . DIRECTORY_SEPARATOR . 'flipbook_gallery' . DIRECTORY_SEPARATOR . (int) $article->id;
++                . 'com_tz_portfolio' . DIRECTORY_SEPARATOR . 'flipbook_gallery' . DIRECTORY_SEPARATOR . (int) $article->id;
+diff -rN -U0 a/admin/tmpl/default.php b/admin/tmpl/default.php
+--- a/admin/tmpl/default.php	2026-06-18 12:30:40.000000000 +0000
++++ b/admin/tmpl/default.php	2026-11-13 08:29:29.711451952 +0000
+@@ -127,3 +127,5 @@
+-                            $basePathNew = 'images/tz_portfolio/flipbook_gallery/' . $article_id . '/';
+-                            $basePathLegacy = 'images/tz_portfolio_plus/flipbook_gallery/' . $article_id . '/';
+-                            $basePath = File::exists(JPATH_ROOT . '/' . $basePathNew . $flipbook_image) ? $basePathNew : $basePathLegacy;
++                            $basePath = 'images/com_tz_portfolio/flipbook_gallery/' . $article_id . '/';
++                            foreach (['com_tz_portfolio', 'tz_portfolio', 'tz_portfolio_plus'] as $directory) {
++                                $candidate = 'images/' . $directory . '/flipbook_gallery/' . $article_id . '/';
++                                if (File::exists(JPATH_ROOT . '/' . $candidate . $flipbook_image)) {$basePath = $candidate; break;}
++                            }
+diff -rN -U0 a/flipbook_gallery.xml b/flipbook_gallery.xml
+--- a/flipbook_gallery.xml	2026-11-13 07:15:22.554627298 +0000
++++ b/flipbook_gallery.xml	2026-11-13 08:29:29.711728862 +0000
+@@ -10 +10 @@
+-    <version>1.0.18-j6</version>
++    <version>1.0.19-j6</version>
+diff -rN -U0 a/src/Extension/Flipbook_gallery.php b/src/Extension/Flipbook_gallery.php
+--- a/src/Extension/Flipbook_gallery.php	2026-11-13 07:15:22.554538747 +0000
++++ b/src/Extension/Flipbook_gallery.php	2026-11-13 08:29:29.711797143 +0000
+@@ -93 +93 @@
+-                $wa->registerStyle($name, $uri, ['version' => '1.0.18']);
++                $wa->registerStyle($name, $uri, ['version' => '1.0.19']);
+@@ -95 +95 @@
+-                $wa->registerScript($name, $uri, ['version' => '1.0.18'], [], $dependencies);
++                $wa->registerScript($name, $uri, ['version' => '1.0.19'], [], $dependencies);
+diff -rN -U0 a/tmpl/article/default.php b/tmpl/article/default.php
+--- a/tmpl/article/default.php	2026-11-12 14:48:35.818877022 +0000
++++ b/tmpl/article/default.php	2026-11-13 08:29:29.711250093 +0000
+@@ -138,3 +138,5 @@
+-    $basePathNew = 'images/tz_portfolio/flipbook_gallery/' . $articleId . '/';
+-    $basePathLegacy = 'images/tz_portfolio_plus/flipbook_gallery/' . $articleId . '/';
+-    $basePath = File::exists(JPATH_ROOT . '/' . $basePathNew . $image) ? $basePathNew : $basePathLegacy;
++    $basePath = 'images/com_tz_portfolio/flipbook_gallery/' . $articleId . '/';
++    foreach (['com_tz_portfolio', 'tz_portfolio', 'tz_portfolio_plus'] as $directory) {
++        $candidate = 'images/' . $directory . '/flipbook_gallery/' . $articleId . '/';
++        if (File::exists(JPATH_ROOT . '/' . $candidate . $image)) {$basePath = $candidate; break;}
++    }

@@ -4,8 +4,8 @@ defined('_JEXEC') or die;
 /** Explicit schemas: never guess how an unknown add-on stores or deletes data. */
 final class Adapters {
  public const DEFINITIONS=[
-  'flipbook_gallery'=>['label'=>'Флипбук — Flipbook Gallery','folder'=>'mediatype','storage'=>'media','field'=>'flipbook_gallery','directory'=>'flipbook_gallery','roots'=>['tz_portfolio','tz_portfolio_plus'],'write'=>'tz_portfolio'],
-  'gallery'=>['label'=>'Галерея — Content Gallery','folder'=>'content','storage'=>'addon','field'=>'gallery_content','directory'=>'gallery','roots'=>['tz_portfolio_plus','com_tz_portfolio','tz_portfolio'],'write'=>'tz_portfolio_plus'],
+  'flipbook_gallery'=>['label'=>'Флипбук — Flipbook Gallery','folder'=>'mediatype','storage'=>'media','field'=>'flipbook_gallery','directory'=>'flipbook_gallery','roots'=>['com_tz_portfolio','tz_portfolio','tz_portfolio_plus'],'write'=>'com_tz_portfolio'],
+  'gallery'=>['label'=>'Галерея — Content Gallery','folder'=>'content','storage'=>'addon','field'=>'gallery_content','directory'=>'gallery','roots'=>['com_tz_portfolio','tz_portfolio','tz_portfolio_plus'],'write'=>'com_tz_portfolio'],
   'grid_gallery'=>['label'=>'Сетка — Grid Gallery','folder'=>'mediatype','storage'=>'media','field'=>'grid_gallery','directory'=>'grid_gallery','roots'=>['tz_portfolio','tz_portfolio_plus'],'write'=>'tz_portfolio'],
  ];
  public static function json(?string $value): array {
