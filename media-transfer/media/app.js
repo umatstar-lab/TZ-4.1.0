@@ -1,7 +1,7 @@
 (function(){'use strict';
  const root=document.getElementById('tzmt');if(!root)return;
  const cfg=Joomla.getOptions('com_tz_media_transfer'),el=id=>document.getElementById('tzmt-'+id);
- let inventory=[],job=null,busy=false,pumping=false,cancelling=false;
+ let inventory=[],materials=[],scanned=false,job=null,busy=false,pumping=false,cancelling=false;
  const statuses={running:'Выполняется',conflict:'Ожидает решения',done:'Завершено',error:'Остановлено с ошибкой',cancelled:'Остановлено',rolling_back:'Идёт откат',undone:'Отменено, данные восстановлены'};
  const text=(node,value)=>{node.textContent=String(value??'');};
  function message(value,kind='info'){el('message').replaceChildren();if(value){const n=document.createElement('div');n.className='alert alert-'+kind;n.setAttribute('role','alert');n.textContent=value;el('message').append(n);}}
@@ -11,18 +11,41 @@
  function mode(){return root.querySelector('[name="tzmt-mode"]:checked').value;}
  function selected(){return [...el('materials').querySelectorAll('input:checked')].filter(x=>x.dataset.invalid!=='1').map(x=>Number(x.value));}
  function lock(value){busy=value;for(const id of ['source','target','scan','all','activate','select-all','select-none'])el(id).disabled=value;root.querySelectorAll('[name="tzmt-mode"],#tzmt-materials input').forEach(n=>n.disabled=value||n.dataset.invalid==='1');selection();}
- function selection(){const checks=[...el('materials').querySelectorAll('input[data-invalid="0"]')];const checked=checks.filter(n=>n.checked).length;el('all').checked=checks.length>0&&checked===checks.length;el('all').indeterminate=checked>0&&checked<checks.length;el('all').disabled=busy||!checks.length;el('select-all').disabled=busy||!checks.length||checked===checks.length;el('select-none').disabled=busy||!checked;const ids=selected(),source=inventory.find(a=>a.key===el('source').value);let count=0;for(const a of source?.articles||[])if(ids.includes(a.id))count+=a.images;text(el('selected'),`Выбрано материалов: ${ids.length}; изображений: ${count}`);el('start').disabled=busy||!ids.length||el('source').value===el('target').value;text(el('start'),mode()==='copy'?'Начать копирование':'Начать перемещение');}
- function summary(a){return a?`Найдено ${a.images} изображений, ${a.captions} подписей, материалов: ${a.articles.length}.${a.missing?' Недоступно файлов: '+a.missing+'.':''}${a.enabled?'':' Дополнение выключено; для вывода на сайте его нужно включить.'}`:'';}
+ function selection(){const checks=[...el('materials').querySelectorAll('input[data-invalid="0"]')];const checked=checks.filter(n=>n.checked).length;el('all').checked=checks.length>0&&checked===checks.length;el('all').indeterminate=checked>0&&checked<checks.length;el('all').disabled=busy||!checks.length;el('select-all').disabled=busy||!checks.length||checked===checks.length;el('select-none').disabled=busy||!checked;const ids=selected(),source=inventory.find(a=>a.key===el('source').value);let count=0;for(const a of source?.articles||[])if(ids.includes(a.id))count+=a.images;text(el('selected'),scanned?`Выбрано материалов: ${ids.length}; изображений: ${count}`:'');el('start').disabled=busy||!ids.length||el('source').value===el('target').value;text(el('start'),mode()==='copy'?'Начать копирование':'Начать перемещение');}
+ function summary(a){return scanned&&a?`Найдено ${a.images} изображений, ${a.captions} подписей, материалов с изображениями: ${a.articles.filter(n=>n.images>0).length}.`:'';}
  function renderMaterials(){
-  const a=inventory.find(a=>a.key===el('source').value),b=inventory.find(a=>a.key===el('target').value);text(el('source-summary'),summary(a));text(el('target-summary'),summary(b));el('materials').replaceChildren();
-  for(const item of a?.articles||[]){const tr=document.createElement('tr'),td=document.createElement('td'),check=document.createElement('input');check.type='checkbox';check.value=item.id;check.setAttribute('aria-label',item.title);check.dataset.invalid=item.error||item.missing?'1':'0';check.disabled=check.dataset.invalid==='1';check.checked=!check.disabled;check.addEventListener('change',selection);td.append(check);tr.append(td);cell(tr,`${item.title} (ID ${item.id})`);cell(tr,item.images);cell(tr,item.captions);cell(tr,item.error||(item.missing?`Не найдено файлов: ${item.missing}`:'Готово'));el('materials').append(tr);}
-  if(!a?.articles.length){const tr=document.createElement('tr');const td=cell(tr,'В этом дополнении нет изображений в доступных материалах.');td.colSpan=5;el('materials').append(tr);}selection();
+  const source=inventory.find(a=>a.key===el('source').value),target=inventory.find(a=>a.key===el('target').value);
+  text(el('source-summary'),summary(source));text(el('target-summary'),summary(target));el('materials').replaceChildren();
+  const columns=inventory.filter(a=>a.key===source?.key||a.key===target?.key);
+  text(el('first-heading'),columns[0]?.label.split(' — ')[0]||'Флипбук');text(el('second-heading'),columns[1]?.label.split(' — ')[0]||'Галерея');
+  const indexes=new Map(inventory.map(a=>[a.key,new Map(a.articles.map(n=>[n.id,n]))]));
+  for(const item of materials){
+   const from=indexes.get(source?.key)?.get(item.id),to=indexes.get(target?.key)?.get(item.id);
+   const tr=document.createElement('tr'),td=document.createElement('td'),check=document.createElement('input');
+   check.type='checkbox';check.value=item.id;check.setAttribute('aria-label',item.title);
+   check.dataset.invalid=!scanned||!from?.images||from?.error||to?.error?'1':'0';check.disabled=busy||check.dataset.invalid==='1';check.checked=scanned&&check.dataset.invalid==='0';
+   if(from?.error||to?.error)check.title=from?.error||to?.error;
+   check.addEventListener('change',selection);td.append(check);tr.append(td);cell(tr,`${item.title} (ID ${item.id})`);
+   for(let i=0;i<2;i++){const counts=indexes.get(columns[i]?.key)?.get(item.id);cell(tr,scanned?(counts?.images||0):'—');cell(tr,scanned?(counts?.captions||0):'—');}
+   el('materials').append(tr);
+  }
+  if(!materials.length){const tr=document.createElement('tr');cell(tr,'Нет доступных материалов.').colSpan=6;el('materials').append(tr);}selection();
  }
- async function scan(){message('Идёт поиск изображений…');lock(true);try{const r=await api('inventory');inventory=r.adapters;text(el('trash'),`Материалов в корзине исключено: ${r.trash_skipped}`);const oldSource=el('source').value,oldTarget=el('target').value;for(const id of ['source','target']){el(id).replaceChildren();for(const a of inventory){const o=document.createElement('option');o.value=a.key;o.textContent=a.label;el(id).append(o);}}
-  if(inventory.some(a=>a.key===oldSource))el('source').value=oldSource;else el('source').value=inventory.find(a=>a.images>0)?.key||inventory[0]?.key||'';
+ function applyInventory(r){
+  inventory=r.adapters;materials=r.materials||[];scanned=!!r.scanned;
+  text(el('trash'),scanned?`Материалов в корзине исключено: ${r.trash_skipped}`:'');
+  const oldSource=el('source').value,oldTarget=el('target').value;
+  for(const id of ['source','target']){el(id).replaceChildren();for(const a of inventory){const o=document.createElement('option');o.value=a.key;o.textContent=a.label;el(id).append(o);}}
+  el('source').value=inventory.some(a=>a.key===oldSource)?oldSource:(inventory.find(a=>a.key==='flipbook_gallery')?.key||inventory[0]?.key||'');
   el('target').value=inventory.some(a=>a.key===oldTarget)&&oldTarget!==el('source').value?oldTarget:inventory.find(a=>a.key!==el('source').value)?.key||'';
-  renderMaterials();message(inventory.length>=2?'Поиск завершён. Выберите материалы и действие.':'Для переноса нужны хотя бы два установленных поддерживаемых дополнения Portfolio.','info');
- }catch(e){message(e.message,'danger');}finally{lock(false);}}
+  renderMaterials();
+ }
+ async function loadCatalog(){lock(true);try{applyInventory(await api('catalog'));message('Нажмите «Найти изображения», чтобы проверить файлы и подписи.');}catch(e){message(e.message,'danger');}finally{lock(false);}}
+ async function scan(){
+  if(busy)return;lock(true);scanned=false;renderMaterials();text(el('trash'),'');message('Идёт поиск изображений…');
+  try{applyInventory(await api('inventory'));message(inventory.length>=2?'Поиск завершён. Показаны существующие изображения и их подписи. Выберите материалы и действие.':'Для переноса нужны хотя бы два установленных поддерживаемых дополнения Portfolio.','info');}
+  catch(e){message(e.message,'danger');}finally{lock(false);}
+ }
  function showJob(){if(!job)return;el('progress-panel').hidden=false;const undo=['rolling_back','undone'].includes(job.status),processed=undo?job.undo_processed:job.processed,total=undo?job.undo_total:job.total;text(el('progress-text'),`${statuses[job.status]||job.status}: ${processed} из ${total}`);el('progress').max=total||1;el('progress').value=processed;text(el('stats'),`Копировано: ${job.stats.copied}; перемещено: ${job.stats.moved}; пропущено: ${job.stats.skipped}; заменено: ${job.stats.replaced}; переименовано: ${job.stats.renamed}; копий для второй подписи: ${job.stats.caption_copies}`);text(el('warning'),job.error||job.warnings.join('\n'));el('resume').hidden=!['running','conflict','rolling_back'].includes(job.status)||pumping;el('cancel').hidden=!['running','conflict'].includes(job.status);el('undo').hidden=['rolling_back','undone'].includes(job.status)||pumping;el('results').replaceChildren();for(const item of job.results){const tr=document.createElement('tr');cell(tr,`${item.title} (${item.article})`);cell(tr,item.name);cell(tr,item.result);el('results').append(tr);} }
  function bytes(n){return n>1048576?(n/1048576).toFixed(1)+' МБ':Math.ceil(n/1024)+' КБ';}
  function showConflict(){const c=job.conflict;if(!c)return;text(el('conflict-title'),c.kind==='image'?'Изображение уже существует':'У изображения уже есть другая подпись');text(el('conflict-description'),`Материал: ${c.title} (ID ${c.article}). `+(c.kind==='image'?(c.same_content?'Содержимое файлов одинаковое.':'Совпало имя; содержимое отличается или файл назначения отсутствует.'):'Можно сохранить обе подписи, создав отдельную копию фотографии.'));
@@ -44,5 +67,5 @@
  async function cancelJob(){if(!job||cancelling)return;cancelling=true;el('cancel').disabled=true;el('conflict-cancel').disabled=true;el('apply').disabled=true;try{job=await api('cancel',{job:job.id});if(el('conflict').open)el('conflict').close();showJob();message('Операция остановлена. Уже выполненные изменения можно откатить кнопкой «Откатить операцию».');await history();}catch(e){message(e.message,'danger');if(el('conflict').open)text(el('conflict-description'),'Не удалось остановить операцию: '+e.message);}finally{cancelling=false;el('cancel').disabled=false;el('conflict-cancel').disabled=false;el('apply').disabled=false;}}
  el('cancel').addEventListener('click',cancelJob);el('conflict-cancel').addEventListener('click',cancelJob);
  el('undo').addEventListener('click',async()=>{if(!confirm('Откатить выполненные изменения этой операции? Последующие правки не будут перезаписаны.'))return;try{job=await api('undo',{job:job.id});await pump();}catch(e){message(e.message,'danger');}});
- el('refresh-history').addEventListener('click',history);scan().then(history);
+ el('refresh-history').addEventListener('click',history);loadCatalog().then(history);
 })();

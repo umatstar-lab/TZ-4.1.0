@@ -29,7 +29,7 @@ final class Files {
  }
  public function resolve(string $key,int $id,string $name): ?string {
   self::filename($name);$d=Adapters::definition($key);
-  foreach($d['roots'] as $root){$p=$this->folder($key,$id,$root).'/'.$name;if(is_file($this->path($p)))return $p;}return null;
+  foreach($d['roots'] as $root){$p=$this->folder($key,$id,$root).'/'.$name;$absolute=$this->path($p);clearstatcache(true,$absolute);if(is_file($absolute)&&is_readable($absolute))return $p;}return null;
  }
  public function destination(string $key,int $id,string $name): string {self::filename($name);return $this->folder($key,$id).'/'.$name;}
  public function hash(string $relative): string {

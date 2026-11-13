@@ -1,7 +1,7 @@
 const {open,api}=require('./helpers.cjs');const assert=require('node:assert/strict');const {execFileSync}=require('node:child_process');
 const snapshot=()=>JSON.parse(execFileSync('docker',['exec','migration273-web-1','php','/tmp/tzmt-inspect.php'],{encoding:'utf8'}));
 (async()=>{let {browser,page,errors}=await open();try{
- const before=snapshot();await page.waitForFunction(()=>!document.getElementById('tzmt-source').disabled);
+ const before=snapshot();await page.waitForFunction(()=>!document.getElementById('tzmt-source').disabled);await page.locator('#tzmt-scan').click();await page.waitForFunction(()=>document.getElementById('tzmt-message').textContent.includes('Поиск завершён'));
  await page.locator('#tzmt-all').uncheck();await page.locator('#tzmt-materials input[value="91001"]').check();
  await page.locator('#tzmt-start').click();await page.locator('#tzmt-conflict[open]').waitFor();assert.match(await page.locator('#tzmt-conflict-title').innerText(),/Изображение/);
  await page.locator('input[name=tzmt-choice][value=keep]').check();assert(!await page.locator('#tzmt-apply-all').isChecked());await page.locator('#tzmt-apply').click();

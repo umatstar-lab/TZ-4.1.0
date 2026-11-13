@@ -10,7 +10,7 @@ use Umatstar\Component\TzMediaTransfer\Administrator\Service\TransferService;
 class ApiController extends BaseController {
  public function run() {
   $app=Factory::getApplication();
-  header('Content-Type: application/json; charset=utf-8');header('X-Content-Type-Options: nosniff');
+  header('Cache-Control: no-store');header('Content-Type: application/json; charset=utf-8');header('X-Content-Type-Options: nosniff');
   \Joomla\CMS\Log\Log::addLogger(['text_file'=>'com_tz_media_transfer.php'],\Joomla\CMS\Log\Log::ALL,['com_tz_media_transfer']);
   try {
    if (!$app->isClient('administrator') || !$app->getIdentity()->authorise('core.manage','com_tz_media_transfer')) throw new \RuntimeException('Недостаточно прав доступа.',403);

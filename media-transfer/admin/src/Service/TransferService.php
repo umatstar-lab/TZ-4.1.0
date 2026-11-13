@@ -23,7 +23,8 @@ final class TransferService {
  private function execute(string $sql): void {$this->db->setQuery($sql)->execute();}
  private function now(): string {return gmdate('Y-m-d H:i:s');}
  public function dispatch(string $action,array $p): array {
-  if($action==='inventory')return $this->inventory();
+  if($action==='inventory')return $this->inventory(true);
+  if($action==='catalog')return $this->inventory(false);
   if($action==='history')return $this->history();
   if(!in_array($action,['start','step','resolve','status','cancel','undo','undoStep','purge'],true))throw new \RuntimeException('Неизвестное действие.');
   $this->db->setQuery('SELECT GET_LOCK('.$this->q($this->lock).',0)');
@@ -80,20 +81,29 @@ final class TransferService {
    try{$this->insert('#__tz_portfolio_plus_addon_data',$new);}finally{$this->execute('SET SESSION sql_mode='.$this->q($mode));}
   }elseif($new && $old && $new!==$old){unset($new['id']);$changed=[];foreach($new as $key=>$value)if(!array_key_exists($key,$old)||$value!==$old[$key])$changed[$key]=$value;if($changed)$this->update('#__tz_portfolio_plus_addon_data',$changed,'id='.(int)$old['id']);}
  }
- private function inventory(): array {
-  $out=[];foreach($this->available as $key=>$d)$out[$key]=['key'=>$key,'label'=>$d['label'],'enabled'=>$d['enabled'],'images'=>0,'captions'=>0,'missing'=>0,'articles'=>[]];
-  $articles=$this->rows('SELECT id,title,state FROM #__tz_portfolio_plus_content WHERE state<>-2 ORDER BY title,id');
-  foreach($articles as $a){$id=(int)$a['id'];if(!$this->canEdit($id))continue;
+ private function inventory(bool $scan): array {
+  $out=[];
+  foreach($this->available as $key=>$d)$out[$key]=['key'=>$key,'label'=>$d['label'],'enabled'=>$d['enabled'],'images'=>$scan?0:null,'captions'=>$scan?0:null,'articles'=>[]];
+  $materials=[];
+  foreach($this->rows('SELECT id,title,state FROM #__tz_portfolio_plus_content WHERE state<>-2 ORDER BY title,id') as $a){
+   $id=(int)$a['id'];if(!$this->canEdit($id))continue;
+   $materials[]=['id'=>$id,'title'=>$a['title'],'state'=>(int)$a['state']];
+   if(!$scan)continue;
    foreach($out as $key=>&$entry){
-    try{$dataset=Adapters::read($key,$this->bundle($id));if(!$dataset['entries'])continue;$missing=0;$captions=0;
-     foreach($dataset['entries'] as $item){if(!$this->files->resolve($key,$id,$item['name']))$missing++;if($item['caption']!=='')$captions++;}
-     $entry['images']+=count($dataset['entries']);$entry['captions']+=$captions;$entry['missing']+=$missing;
-     $entry['articles'][]=['id'=>$id,'title'=>$a['title'],'state'=>(int)$a['state'],'images'=>count($dataset['entries']),'captions'=>$captions,'missing'=>$missing];
-    }catch(\RuntimeException $e){$entry['articles'][]=['id'=>$id,'title'=>$a['title'],'images'=>0,'captions'=>0,'missing'=>0,'error'=>$e->getMessage()];}
+    $row=['id'=>$id,'title'=>$a['title'],'state'=>(int)$a['state'],'images'=>0,'captions'=>0];
+    try{
+     $dataset=Adapters::read($key,$this->bundle($id));
+     foreach($dataset['entries'] as $item){
+      if(!$this->files->resolve($key,$id,$item['name']))continue;
+      $row['images']++;if(trim($item['caption'])!=='')$row['captions']++;
+     }
+     $entry['images']+=$row['images'];$entry['captions']+=$row['captions'];
+    }catch(\RuntimeException $e){$row['error']=$e->getMessage();}
+    $entry['articles'][]=$row;
    }unset($entry);
   }
   $trash=(int)$this->db->setQuery('SELECT COUNT(*) FROM #__tz_portfolio_plus_content WHERE state=-2')->loadResult();
-  return ['adapters'=>array_values($out),'trash_skipped'=>$trash];
+  return ['adapters'=>array_values($out),'materials'=>$materials,'scanned'=>$scan,'trash_skipped'=>$trash];
  }
  private function start(array $p): array {
   foreach(['tz_portfolio_plus_content','tz_portfolio_plus_addon_data','tz_media_transfer_jobs','tz_media_transfer_changes'] as $table){$rows=$this->rows('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='.$this->q($this->db->getPrefix().$table));if(strtoupper($rows[0]['ENGINE']??'')!=='INNODB')throw new \RuntimeException('Для безопасного переноса требуются таблицы InnoDB.');}
@@ -106,7 +116,7 @@ final class TransferService {
    if(!$this->canEdit($id,$mode==='move'))throw new \RuntimeException('Нет прав на изменение выбранного материала.');
    $b=$this->bundle($id);if((int)$b['article']['state']===-2)throw new \RuntimeException('Материалы в корзине исключены из переноса.');
    $data=Adapters::read($source,$b);Adapters::read($target,$b);
-   foreach($data['entries'] as $entry)if(!$this->files->resolve($source,$id,$entry['name']))throw new \RuntimeException('Материал '.$id.': не найден файл '.$entry['name'].'.');
+   $data['entries']=array_values(array_filter($data['entries'],fn($entry)=>$this->files->resolve($source,$id,$entry['name'])!==null));
    if(!$data['entries'])continue;
    $plans[]=['id'=>$id,'title'=>$b['article']['title'],'entries'=>$data['entries'],'expected'=>$this->fingerprint($b)];$total+=count($data['entries']);
   }

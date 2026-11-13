@@ -1,6 +1,7 @@
 <?php defined('_JEXEC') or die; ?>
 <div id="tzmt" class="tzmt">
  <p class="tzmt-intro">Копирование и перемещение фотографий вместе с подписями между дополнениями TZ Portfolio 4.1+. Обрабатываются выбранные материалы; корзина исключена.</p>
+ <p class="tzmt-note">Версия 1.0.5</p>
  <div id="tzmt-message" role="status" aria-live="polite"></div>
  <section class="card mb-3"><div class="card-body">
   <h2>1. Выберите дополнения</h2>
@@ -13,7 +14,7 @@
  <section class="card mb-3"><div class="card-body">
   <h2>2. Материалы и действие</h2>
   <div class="tzmt-actions" role="group" aria-label="Выбор материалов"><button id="tzmt-select-all" class="btn btn-outline-secondary" type="button" disabled>Выбрать всё</button><button id="tzmt-select-none" class="btn btn-outline-secondary" type="button" disabled>Снять всё</button></div>
-  <div class="tzmt-table"><table class="table"><thead><tr><th><input id="tzmt-all" type="checkbox" aria-label="Выбрать все материалы"></th><th>Материал</th><th>Изображения</th><th>Подписи</th><th>Проверка</th></tr></thead><tbody id="tzmt-materials"><tr><td colspan="5">Идёт поиск…</td></tr></tbody></table></div>
+  <div class="tzmt-table"><table class="table"><thead><tr><th rowspan="2"><input id="tzmt-all" type="checkbox" aria-label="Выбрать все материалы" disabled></th><th rowspan="2" scope="col">Материал</th><th id="tzmt-first-heading" colspan="2" scope="colgroup">Флипбук</th><th id="tzmt-second-heading" colspan="2" scope="colgroup">Галерея</th></tr><tr><th scope="col">Изображения</th><th scope="col">Подписи</th><th scope="col">Изображения</th><th scope="col">Подписи</th></tr></thead><tbody id="tzmt-materials"><tr><td colspan="6">Загрузка списка материалов…</td></tr></tbody></table></div>
   <fieldset class="tzmt-mode"><legend>Что сделать</legend><label><input type="radio" name="tzmt-mode" value="copy" checked> Копировать</label><label><input type="radio" name="tzmt-mode" value="move"> Переместить</label></fieldset>
   <p id="tzmt-mode-help" class="tzmt-note">Изображения и подписи останутся в источнике.</p>
   <label class="tzmt-check"><input id="tzmt-activate" type="checkbox"> Переключить основной вывод материала на дополнение назначения</label>
