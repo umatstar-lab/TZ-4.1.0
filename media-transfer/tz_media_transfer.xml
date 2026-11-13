@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" method="upgrade">
  <name>COM_TZ_MEDIA_TRANSFER</name><author>Umatstar Lab</author><creationDate>November 2026</creationDate>
- <license>GNU General Public License version 2 or later</license><version>1.0.1</version><description>COM_TZ_MEDIA_TRANSFER_XML_DESCRIPTION</description>
+ <license>GNU General Public License version 2 or later</license><version>1.0.2</version><description>COM_TZ_MEDIA_TRANSFER_XML_DESCRIPTION</description>
  <namespace path="src">Umatstar\Component\TzMediaTransfer</namespace>
  <install><sql><file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file></sql></install>
  <update><schemas><schemapath type="mysql">sql/updates/mysql</schemapath></schemas></update>
