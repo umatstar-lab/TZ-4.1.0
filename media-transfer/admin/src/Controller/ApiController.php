@@ -15,8 +15,10 @@ class ApiController extends BaseController {
   try {
    if (!$app->isClient('administrator') || !$app->getIdentity()->authorise('core.manage','com_tz_media_transfer')) throw new \RuntimeException('Недостаточно прав доступа.',403);
    if (!Session::checkToken('post')) throw new \RuntimeException('Сессия истекла. Обновите страницу и повторите запрос.',403);
-   $p=json_decode($app->input->post->get('payload','{}','raw'),true,512,JSON_THROW_ON_ERROR);
-   if (!is_array($p)) throw new \RuntimeException('Неверный запрос.');
+   $raw=$app->input->post->get('payload','{}','raw');
+   if(!is_string($raw)||strlen($raw)>262144)throw new \RuntimeException('Запрос слишком большой или имеет неверный формат.');
+   $p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+   if (!is_array($p)||!isset($p['action'])||!is_string($p['action'])||strlen($p['action'])>32) throw new \RuntimeException('Неверный запрос.');
    $service=new TransferService(Factory::getContainer()->get(DatabaseInterface::class),$app->getIdentity(),JPATH_ROOT);
    $result=$service->dispatch((string)($p['action']??''),$p);
    echo new JsonResponse($result);

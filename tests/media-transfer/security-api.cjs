@@ -1,0 +1,23 @@
+const {open,api}=require('./helpers.cjs');const assert=require('node:assert/strict');const {execFileSync}=require('node:child_process');
+const fixture=(...args)=>execFileSync('docker',['exec','migration273-web-1','php','/tmp/tzmt-security-accounts.php',...args],{encoding:'utf8'});
+const snapshot=()=>JSON.parse(execFileSync('docker',['exec','migration273-web-1','php','/tmp/tzmt-inspect.php'],{encoding:'utf8'}));
+async function ok(p,a,d={}){const r=await api(p,a,d);assert.equal(r.status,200,JSON.stringify(r));assert(r.body.success,JSON.stringify(r));return r.body.data;}
+(async()=>{const admin=await open();let limited,job;try{
+const before=snapshot();
+for(const [action,data] of [['start',{source:"gallery' OR 1=1 --",target:'flipbook_gallery',mode:'copy',articles:[91001]}],['start',{source:'flipbook_gallery',target:'gallery',mode:'copy',articles:['91001 OR 1=1']}],['status',{job:"' OR 1=1 --"}],['status',{job:'../configuration.php'}],['step',{job:{x:1}}],['start',{source:'flipbook_gallery',target:'gallery',mode:'copy',articles:[91001],activate:[]}],['shell_exec',{command:'id'}],['upload',{file:'shell.php',body:'<?php echo 1;'}]]){
+ const r=await api(admin.page,action,data);assert.equal(r.status,400,JSON.stringify(r));assert(!r.body.success);assert.deepEqual(snapshot(),before);
+}
+console.log('PASS SQL/path injection, wrong parameter types, command and upload actions rejected without file/metadata changes');
+const bad=await admin.page.evaluate(async()=>{const cfg=Joomla.getOptions('com_tz_media_transfer');const request=async(method,payload,token=true)=>{const r=await fetch(cfg.url,{method,body:method==='POST'?new URLSearchParams({...token?{[cfg.token]:'1'}:{},payload}):undefined});return {status:r.status,body:await r.text()};};return [await request('POST',JSON.stringify({action:'catalog'}),false),await request('GET',''),await request('POST','{"action":"catalog","x":"'+'x'.repeat(270000)+'"}'),await request('POST','{"action":"catalog","x":'+ '['.repeat(40)+'0'+']'.repeat(40)+'}')];});
+for(const r of bad){assert([400,403].includes(r.status));assert(!/SQLSTATE|Stack trace|Fatal error/.test(r.body));}
+console.log('PASS missing CSRF, GET invocation, oversized and excessively nested JSON rejected');
+const anonymous=await admin.browser.newContext();const res=await anonymous.request.post('http://127.0.0.1:8084/administrator/index.php?option=com_tz_media_transfer&task=api.run&format=raw',{form:{payload:JSON.stringify({action:'inventory'})}});assert(!/"success"\s*:\s*true/.test(await res.text()));await anonymous.close();assert.deepEqual(snapshot(),before);console.log('PASS anonymous request cannot access inventory');
+fixture('setup');limited=await open('tzmt_security_limited');job=await ok(limited.page,'start',{source:'flipbook_gallery',target:'gallery',mode:'copy',articles:[91005]});
+const denied=await api(admin.page,'status',{job:job.id});assert.equal(denied.status,400);console.log('PASS even another super administrator cannot access a different owner job');
+execFileSync('docker',['exec','--user','www-data','migration273-web-1','php','/tmp/tzmt-failures.php','prepared',job.id]);const prepared=snapshot();assert.notDeepEqual(prepared,before);fixture('revoke');
+for(const action of ['status','step','undo','undoStep','resolve']){const r=await api(limited.page,action,{job:job.id});assert.equal(r.status,403,JSON.stringify(r));assert.deepEqual(snapshot(),prepared);}
+await ok(limited.page,'cancel',{job:job.id});assert.deepEqual(snapshot(),prepared);const purge=await api(limited.page,'purge',{job:job.id});assert.equal(purge.status,400);assert.deepEqual(snapshot(),prepared);
+console.log('PASS revoked article permissions stop recovery/deletion before any side effects; cancellation remains available and pending recovery journal cannot be purged');
+fixture('grant');await ok(limited.page,'status',{job:job.id});assert.deepEqual(snapshot(),before);await ok(limited.page,'purge',{job:job.id});job=null;
+fixture('deny-manage');for(const action of ['catalog','inventory','history']){const r=await limited.page.evaluate(async action=>{const cfg=Joomla.getOptions('com_tz_media_transfer');const r=await fetch(cfg.url,{method:'POST',body:new URLSearchParams({[cfg.token]:'1',payload:JSON.stringify({action})})});return {status:r.status,body:await r.text()};},action);assert.equal(r.status,403);assert(!/\"success\"\s*:\s*true/.test(r.body));}assert.deepEqual(snapshot(),before);console.log('PASS component manage permission checked for read and write API actions');
+}finally{if(limited)await limited.browser.close();fixture('restore');await admin.browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});
