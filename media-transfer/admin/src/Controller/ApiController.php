@@ -7,6 +7,7 @@ use Joomla\CMS\Session\Session;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\Database\DatabaseInterface;
 use Umatstar\Component\TzMediaTransfer\Administrator\Service\TransferService;
+use Umatstar\Component\TzMediaTransfer\Administrator\Service\MenuMigration;
 class ApiController extends BaseController {
  public function run() {
   $app=Factory::getApplication();
@@ -19,7 +20,7 @@ class ApiController extends BaseController {
    if(!is_string($raw)||strlen($raw)>262144)throw new \RuntimeException('Запрос слишком большой или имеет неверный формат.');
    $p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
    if (!is_array($p)||!isset($p['action'])||!is_string($p['action'])||strlen($p['action'])>32) throw new \RuntimeException('Неверный запрос.');
-   $service=new TransferService(Factory::getContainer()->get(DatabaseInterface::class),$app->getIdentity(),JPATH_ROOT);
+   $service=in_array($p['action'],['menuScan','menuApply','menuHistory','menuUndo'],true)?new MenuMigration(Factory::getContainer()->get(DatabaseInterface::class),$app->getIdentity(),JPATH_ROOT):new TransferService(Factory::getContainer()->get(DatabaseInterface::class),$app->getIdentity(),JPATH_ROOT);
    $result=$service->dispatch((string)($p['action']??''),$p);
    echo new JsonResponse($result);
   } catch (\Throwable $e) {

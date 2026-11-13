@@ -1,7 +1,7 @@
 <?php defined('_JEXEC') or die; ?>
 <div id="tzmt" class="tzmt">
  <p class="tzmt-intro">Копирование и перемещение фотографий вместе с подписями между дополнениями TZ Portfolio 4.1+. Обрабатываются выбранные материалы; корзина исключена.</p>
- <p class="tzmt-note">Версия 1.0.9</p>
+ <p class="tzmt-note">Версия 1.0.10</p>
  <div id="tzmt-message" role="status" aria-live="polite"></div>
  <section class="card mb-3"><div class="card-body">
   <h2>1. Выберите дополнения</h2>
@@ -32,6 +32,15 @@
  <section class="card"><div class="card-body"><div class="tzmt-actions"><h2>Журнал операций</h2><button id="tzmt-refresh-history" class="btn btn-sm btn-outline-secondary" type="button">Обновить журнал</button></div>
   <p class="tzmt-note">Решение «Применить ко всем» действует только в одной операции и отдельно для файлов и подписей. Пропущенные файлы остаются в источнике. После закрытия страницы незавершённую операцию можно продолжить из журнала. Резервные копии для отката занимают место до удаления журнала.</p>
   <div class="tzmt-table"><table class="table"><thead><tr><th>Дата</th><th>Направление</th><th>Состояние</th><th>Обработано</th><th>Действия</th></tr></thead><tbody id="tzmt-history"></tbody></table></div>
+ </div></section>
+ <section class="card mt-3"><div class="card-body">
+  <h2>Перенос пунктов меню Portfolio+ → Portfolio 4</h2>
+  <p>Поиск во всех меню сайта. Соответствия проверяются по сохранённым ID материалов и категорий. Названия, адреса пунктов, вложенность, языки, доступ и состояние публикации сохраняются. Предупреждение «Компонент отключён» устраняется заменой компонента; вручную снятые с публикации пункты автоматически не включаются.</p>
+  <div class="tzmt-actions"><button id="tzmt-menu-scan" type="button" class="btn btn-outline-primary">Найти пункты меню</button><button id="tzmt-menu-all" type="button" class="btn btn-outline-secondary" disabled>Выбрать всё</button><button id="tzmt-menu-none" type="button" class="btn btn-outline-secondary" disabled>Снять всё</button><button id="tzmt-menu-apply" type="button" class="btn btn-primary" disabled>Изменить пункты меню</button></div>
+  <p id="tzmt-menu-message" role="status" aria-live="polite"></p>
+  <div class="tzmt-table"><table class="table"><thead><tr><th>Выбор</th><th>Меню</th><th>Пункт меню</th><th>Тип меню Portfolio+</th><th>Соответствие в Portfolio 4</th><th>Проверка</th></tr></thead><tbody id="tzmt-menu-items"><tr><td colspan="6">Нажмите «Найти пункты меню».</td></tr></tbody></table></div>
+  <h3>Журнал изменений меню</h3><button id="tzmt-menu-history-refresh" type="button" class="btn btn-sm btn-outline-secondary">Обновить журнал меню</button>
+  <div class="tzmt-table"><table class="table"><thead><tr><th>Дата UTC</th><th>Состояние</th><th>Действие</th></tr></thead><tbody id="tzmt-menu-history"><tr><td colspan="3">Нажмите «Найти пункты меню» или «Обновить журнал меню».</td></tr></tbody></table></div>
  </div></section>
  <dialog id="tzmt-file-error" aria-labelledby="tzmt-file-error-title">
   <h2 id="tzmt-file-error-title">Ошибка обработки файла</h2><p id="tzmt-file-error-path"></p><pre id="tzmt-file-error-message"></pre>
