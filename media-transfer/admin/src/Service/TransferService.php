@@ -15,7 +15,8 @@ final class TransferService {
   foreach(Adapters::DEFINITIONS as $key=>$d){
    $rows=$this->rows('SELECT id,published FROM #__tz_portfolio_plus_extensions WHERE folder='.$this->q($d['folder']).' AND element='.$this->q($key));
    $provider=$root.'/components/com_tz_portfolio/add-ons/'.$d['folder'].'/'.$key.'/services/provider.php';
-   if(count($rows)===1&&is_file($provider))$this->available[$key]=$d+['id'=>(int)$rows[0]['id'],'enabled'=>(bool)$rows[0]['published']];
+   if(count($rows)===1&&is_file($provider))$this->available[$key]=$d+['id'=>(int)$rows[0]['id'],'enabled'=>(bool)$rows[0]['published'],'writable'=>true];
+   elseif($key==='grid_gallery')$this->available[$key]=$d+['id'=>0,'enabled'=>false,'writable'=>false];
   }
  }
  private function q($v): string {return $v===null?'NULL':$this->db->quote((string)$v);}
@@ -58,7 +59,7 @@ final class TransferService {
   return $this->user->authorise('core.edit','com_tz_portfolio.article.'.$id)&&(!$move||$this->user->authorise('core.delete','com_tz_portfolio.article.'.$id));
  }
  private function pair(string $source,string $target): void {
-  if($source===$target || !isset($this->available[$source],$this->available[$target]))throw new \RuntimeException('Выберите два разных установленных дополнения Portfolio.');
+  if($source===$target || !isset($this->available[$source],$this->available[$target]) || !$this->available[$target]['writable'])throw new \RuntimeException('Выберите два разных установленных дополнения Portfolio.');
  }
  private function bundle(int $id,bool $locked=false): array {
   $rows=$this->rows('SELECT id,title,state,media,attribs,type FROM #__tz_portfolio_plus_content WHERE id='.$id.($locked?' FOR UPDATE':''));
@@ -92,7 +93,7 @@ final class TransferService {
  }
  private function inventory(bool $scan): array {
   $out=[];
-  foreach($this->available as $key=>$d)$out[$key]=['key'=>$key,'label'=>$d['label'],'enabled'=>$d['enabled'],'images'=>$scan?0:null,'captions'=>$scan?0:null,'articles'=>[]];
+  foreach($this->available as $key=>$d)$out[$key]=['key'=>$key,'label'=>$d['label'],'enabled'=>$d['enabled'],'writable'=>$d['writable'],'images'=>$scan?0:null,'captions'=>$scan?0:null,'articles'=>[]];
   $materials=[];
   foreach($this->rows('SELECT id,title,state FROM #__tz_portfolio_plus_content WHERE state<>-2 ORDER BY title,id') as $a){
    $id=(int)$a['id'];if(!$this->canEdit($id))continue;
@@ -224,14 +225,13 @@ final class TransferService {
    }
    if($s['activate'])Adapters::activate($s['target'],$after);
    $files=[];
-   if(!$this->files->exists($destination)||$this->files->hash($destination)!==$srcHash){
-    $files[]=$this->filePlan($src,$destination,$srcHash);
-    foreach($this->files->derivatives($src) as $small){
+   $copyOriginal=!$this->files->exists($destination)||$this->files->hash($destination)!==$srcHash;
+   if($copyOriginal)$files[]=$this->filePlan($src,$destination,$srcHash);
+   foreach($this->files->derivatives($src) as $small){
      $suffix=substr(pathinfo($small,PATHINFO_FILENAME),strlen(pathinfo($src,PATHINFO_FILENAME)));
      $newSmall=dirname($destination).'/resize/'.pathinfo($name,PATHINFO_FILENAME).$suffix.'.'.pathinfo($small,PATHINFO_EXTENSION);
      $hash=$this->files->hash($small);
-     if(!$this->files->exists($newSmall)||$this->files->hash($newSmall)!==$hash)$files[]=$this->filePlan($small,$newSmall,$hash);
-    }
+     if(!$this->files->exists($newSmall)||($copyOriginal&&$this->files->hash($newSmall)!==$hash))$files[]=$this->filePlan($small,$newSmall,$hash);
    }
    if($removeSource){
     $files[]=$this->removePlan($src,$srcHash);
