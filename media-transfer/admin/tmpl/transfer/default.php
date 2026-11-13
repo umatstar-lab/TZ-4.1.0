@@ -41,7 +41,7 @@
    <fieldset id="tzmt-choices"><legend>Как поступить</legend></fieldset>
    <label class="tzmt-check"><input id="tzmt-apply-all" type="checkbox"> Применить ко всем следующим совпадениям этого типа в этой операции</label>
    <p class="tzmt-note">Без галочки решение применяется только к текущему изображению или подписи.</p>
-   <div class="tzmt-actions"><button id="tzmt-apply" class="btn btn-primary" type="submit">Применить</button><button id="tzmt-later" class="btn btn-outline-secondary" type="button">Решить позже</button></div>
+   <div class="tzmt-actions"><button id="tzmt-apply" class="btn btn-primary" type="submit">Применить</button><button id="tzmt-conflict-cancel" class="btn btn-outline-danger" type="button">Отменить</button><button id="tzmt-later" class="btn btn-outline-secondary" type="button">Решить позже</button></div>
   </form>
  </dialog>
 </div>
