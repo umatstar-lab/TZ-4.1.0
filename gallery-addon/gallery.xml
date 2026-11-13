@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="4.1" type="tz_portfolio-addon" group="content" method="upgrade">
+    <name>plg_content_gallery</name>
+    <author>Sonny</author>
+    <creationDate>November 13th, 2026</creationDate>
+    <copyright>Copyright (C) 2015-2026 TZ Portfolio. All rights reserved.</copyright>
+    <license>GNU/GPL v2 or later http://www.gnu.org/licenses/gpl-2.0.html</license>
+    <authorEmail>support@templaza.com</authorEmail>
+    <authorUrl>www.templaza.com/</authorUrl>
+    <version>2.1.7</version>
+    <description>PLG_CONTENT_GALLERY_XML_DESCRIPTION</description>
+    <tpTargetPlatforms>
+        <tpTargetPlatform name="com_tz_portfolio" version="4.*"/>
+    </tpTargetPlatforms>
+    <namespace path="src/">TemPlaza\Component\TZ_Portfolio\AddOn\Content\Gallery</namespace>
+    <files>
+        <folder addon="gallery">services</folder>
+        <folder>admin</folder>
+        <folder>css</folder>
+        <folder>js</folder>
+        <folder>language</folder>
+        <folder>services</folder>
+        <folder>src</folder>
+        <folder>tmpl</folder>
+    </files>
+
+    <config>
+        <fields name="params" addfieldprefix="\TemPlaza\Component\TZ_Portfolio\Administrator\Field">
+            <!-- Parameters for back-end -->
+            <fieldset name="basic">
+                <field type="text" name="gallery_file_size"
+                       default="10"
+                       label="PLG_CONTENT_GALLERY_MAXIMUM_FILE_SIZE_LABEL"
+                       description="PLG_CONTENT_GALLERY_MAXIMUM_FILE_SIZE_DESC"/>
+                <field type="text" name="gallery_file_type"
+                       default="bmp,gif,jpg,jpeg,png,webp"
+                       label="PLG_CONTENT_GALLERY_FILE_TYPES_LABEL"
+                       description="PLG_CONTENT_GALLERY_FILE_TYPES_DESC"/>
+                <field name="gallery_lightbox_option" type="list"
+                       label="PLG_CONTENT_GALLERY_LIGHTBOX_LABEL"
+                       description="PLG_CONTENT_GALLERY_LIGHTBOX_LABEL"
+                       multiple="true"
+                       layout="joomla.form.field.list-fancy-select"
+                       default="[&quot;zoom&quot;, &quot;slideShow&quot;, &quot;fullScreen&quot;, &quot;thumbs&quot;, &quot;close&quot;]">
+                    <option value="zoom">zoom</option>
+                    <option value="share">share</option>
+                    <option value="slideShow">slideShow</option>
+                    <option value="fullScreen">fullScreen</option>
+                    <option value="download">download</option>
+                    <option value="thumbs">thumbs</option>
+                    <option value="close">close</option>
+                </field>
+                <field type="tzmultiplefield" name="gallery_size"
+                       default='{"title":"XSmall","width":"100","image_name_prefix":"xs"},{"title":"Small","width":"200","image_name_prefix":"s"},{"title":"Medium","width":"400","image_name_prefix":"m"},{"title":"Large","width":"600","image_name_prefix":"l"},{"title":"XLarge","width":"900","image_name_prefix":"xl"}'
+                       label="PLG_CONTENT_GALLERY_SIZE_LABEL">
+                    <field type="text" name="title" table_required="true"
+                           field_required="true"
+                           label="PLG_CONTENT_GALLERY_TITLE_LABEL"/>
+                    <field type="text" name="width" table_required="true"
+                           field_required="true"
+                           label="PLG_CONTENT_GALLERY_WIDTH_LABEL"/>
+                    <field type="text" name="image_name_prefix" table_required="true"
+                           field_required="true" value_validate="o"
+                           label="PLG_CONTENT_GALLERY_NAME_PREFIX"/>
+                </field>
+            </fieldset>
+            <!-- End parameters for back-end -->
+
+            <!-- Parameters for front-end -->
+            <fieldset name="front_end"
+                      label="PLG_CONTENT_GALLERY_FRONT_END_FIELDSET_LABEL"
+                      description="PLG_CONTENT_GALLERY_CONFIG_SETTINGS_DESC">
+                <!-- Start article view options -->
+                <field type="spacer" name="spacer_gallery_article_name"
+                       class="alert alert-warning btn-block"
+                       label="COM_TZ_PORTFOLIO_PLUS_ATTRIBS_FIELDSET_LABEL"/>
+                <field type="radio" name="mt_gallery_show"
+                       default="1" class="switcher btn-group"
+                       layout="joomla.form.field.radio.switcher"
+                       label="PLG_CONTENT_GALLERY_SHOW_LABEL"
+                       description="PLG_CONTENT_GALLERY_SHOW_LABEL">
+                    <option value="0">JHIDE</option>
+                    <option value="1">JSHOW</option>
+                </field>
+                <field type="tzimagesizelist" name="mt_gallery_size"
+                       addon="gallery"
+                       addon_group="content"
+                       param_name="gallery_size"
+                       param_text="title"
+                       param_value="image_name_prefix"
+                       label="PLG_CONTENT_GALLERY_SIZE_LABEL">
+                    <option value="o">PLG_CONTENT_GALLERY_ORIGINAL</option>
+                </field>
+                <field type="list" name="mt_gallery_type"
+                       default="masonry"
+                       label="PLG_CONTENT_GALLERY_TYPE_LABEL">
+                    <option value="grid">PLG_CONTENT_GALLERY_GRID</option>
+                    <option value="masonry">PLG_CONTENT_GALLERY_MASONRY</option>
+                    <option value="horizontal_masonry">PLG_CONTENT_GALLERY_HORIZONTAL_MASONRY</option>
+                    <option value="carousel">PLG_CONTENT_GALLERY_CAROUSEL</option>
+                </field>
+
+
+            <field name="gallery_columns_note" type="spacer" label="PLG_CONTENT_GALLERY_COLUMNS_DESC"/>
+            <field name="mt_gallery_columns_mobile" type="list" default="1" filter="integer" label="PLG_CONTENT_GALLERY_COLUMNS_MOBILE">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+            </field>
+            <field name="mt_gallery_columns_tablet" type="list" default="2" filter="integer" label="PLG_CONTENT_GALLERY_COLUMNS_TABLET">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+            </field>
+            <field name="mt_gallery_columns_desktop" type="list" default="3" filter="integer" label="PLG_CONTENT_GALLERY_COLUMNS_DESKTOP">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+            </field>
+                <field showon="mt_gallery_type!:carousel" type="text" name="mt_gallery_width"
+                       default="400"
+                       label="PLG_CONTENT_GALLERY_GRID_WIDTH_LABEL"
+                       description="PLG_CONTENT_GALLERY_GRID_WIDTH_DESC" />
+                <field showon="mt_gallery_type!:carousel" type="text" name="mt_gallery_height"
+                       default="250"
+                       label="PLG_CONTENT_GALLERY_GRID_HEIGHT_LABEL"
+                       description="PLG_CONTENT_GALLERY_GRID_HEIGHT_DESC" />
+                <field showon="mt_gallery_type!:carousel" type="list" name="mt_grid_image_title_position"
+                       default="under_image"
+                       label="PLG_CONTENT_GALLERY_IMAGE_TITLE_POSITION_LABEL">
+                    <option value="under_image">PLG_CONTENT_GALLERY_TITLE_UNDER_IMAGE</option>
+                    <option value="on_overlay">PLG_CONTENT_GALLERY_TITLE_ON_OVERLAY</option>
+                </field>
+                <field showon="mt_gallery_type:carousel" type="number" name="mt_gallery_carousel_height"
+                       default="600"
+                       label="PLG_CONTENT_GALLERY_HEIGHT_LABEL" />
+                <field showon="mt_gallery_type:carousel" type="list" name="mt_gallery_carousel_gutter"
+                       default="0"
+                       label="PLG_CONTENT_GALLERY_GUTTER">
+                    <option value="0">Collapse</option>
+                    <option value="1">X-Small</option>
+                    <option value="2">Small</option>
+                    <option value="3">Medium</option>
+                    <option value="4">Large</option>
+                    <option value="5">X-Large</option>
+                </field>
+                <field showon="mt_gallery_type:carousel" type="radio" name="mt_gallery_carousel_autoplay"
+                       default="1" class="switcher btn-group"
+                       layout="joomla.form.field.radio.switcher"
+                       label="PLG_CONTENT_GALLERY_AUTOPLAY_LABEL">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field showon="mt_gallery_type:carousel" type="radio" name="mt_gallery_carousel_navigation"
+                       default="1" class="switcher btn-group"
+                       layout="joomla.form.field.radio.switcher"
+                       label="PLG_CONTENT_GALLERY_NAVIGATION_LABEL">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field showon="mt_gallery_type:carousel" type="radio" name="mt_gallery_carousel_dot_navigation"
+                       default="1" class="switcher btn-group"
+                       layout="joomla.form.field.radio.switcher"
+                       label="PLG_CONTENT_GALLERY_DOT_NAVIGATION_LABEL">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field showon="mt_gallery_type:carousel" type="radio" name="mt_gallery_carousel_center_mode"
+                       default="0" class="switcher btn-group"
+                       layout="joomla.form.field.radio.switcher"
+                       label="PLG_CONTENT_GALLERY_CENTER_MODE_LABEL">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                <field showon="mt_gallery_type:carousel[AND]mt_gallery_carousel_center_mode:1" type="text" name="mt_gallery_carousel_center_padding"
+                       default="18%"
+                       label="PLG_CONTENT_GALLERY_CENTER_PADDING_LABEL" />
+                <!-- End article view options -->
+            </fieldset>
+            <!-- End parameters for front-end -->
+        </fields>
+    </config>
+</extension>

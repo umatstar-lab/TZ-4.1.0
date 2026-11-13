@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <!-- Parameters for article's create or edit view -->
+    <fields name="params">
+        <!-- Start article options -->
+        <fieldset name="article">
+            <field type="spacer" name="spacer_gallery_article_hr" hr="true"/>
+            <field type="spacer" name="spacer_gallery_article_name"
+                   class="alert alert-warning btn-block"
+                   label="PLG_CONTENT_GALLERY_OPTIONS_LABEL"/>
+            <field type="list" name="mt_gallery_show"
+                   default=""
+                   label="PLG_CONTENT_GALLERY_SHOW_LABEL"
+                   description="PLG_CONTENT_GALLERY_SHOW_LABEL">
+                <option value="">JGLOBAL_USE_GLOBAL</option>
+                <option value="0">JHIDE</option>
+                <option value="1">JSHOW</option>
+            </field>
+            <field type="tzimagesizelist" name="mt_gallery_size"
+                   addon="gallery"
+                   addon_group="content"
+                   param_name="gallery_size"
+                   param_text="title"
+                   param_value="image_name_prefix"
+                   label="PLG_CONTENT_GALLERY_SIZE_LABEL">
+                <option value="">JGLOBAL_USE_GLOBAL</option>
+                <option value="o">PLG_CONTENT_GALLERY_ORIGINAL</option>
+            </field>
+            <field type="list" name="mt_gallery_type"
+                   default=""
+                   label="PLG_CONTENT_GALLERY_TYPE_LABEL">
+                <option value="">JGLOBAL_USE_GLOBAL</option>
+                <option value="grid">PLG_CONTENT_GALLERY_GRID</option>
+                <option value="masonry">PLG_CONTENT_GALLERY_MASONRY</option>
+                <option value="horizontal_masonry">PLG_CONTENT_GALLERY_HORIZONTAL_MASONRY</option>
+                <option value="carousel">PLG_CONTENT_GALLERY_CAROUSEL</option>
+            </field>
+            <field showon="mt_gallery_type!:carousel" type="text" name="mt_gallery_width"
+                   default=""
+                   label="PLG_CONTENT_GALLERY_GRID_WIDTH_LABEL"
+                   description="PLG_CONTENT_GALLERY_GRID_WIDTH_DESC" />
+            <field showon="mt_gallery_type!:carousel" type="text" name="mt_gallery_height"
+                   default=""
+                   label="PLG_CONTENT_GALLERY_GRID_HEIGHT_LABEL"
+                   description="PLG_CONTENT_GALLERY_GRID_HEIGHT_DESC" />
+            <field showon="mt_gallery_type!:carousel" type="list" name="mt_grid_image_title_position"
+                   default=""
+                   label="PLG_CONTENT_GALLERY_IMAGE_TITLE_POSITION_LABEL">
+                <option value="">JGLOBAL_USE_GLOBAL</option>
+                <option value="under_image">PLG_CONTENT_GALLERY_TITLE_UNDER_IMAGE</option>
+                <option value="on_overlay">PLG_CONTENT_GALLERY_TITLE_ON_OVERLAY</option>
+            </field>
+        </fieldset>
+        <!-- End article options -->
+    </fields>
+    <!-- End parameters for article's create or edit view -->
+</form>
