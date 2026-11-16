@@ -1,0 +1,420 @@
+{
+  "version": "1.0.0",
+  "languages": [
+    "ru-RU",
+    "uk-UA"
+  ],
+  "source_files": [
+    {
+      "path": "flipbook_gallery_addon_v1.0.19/language/en-GB/en-GB.tp_addon_mediatype_flipbook_gallery.ini",
+      "keys": 57,
+      "sha256": "de6c9297e2d0ac80cb58290419ef40a2a7f8deb662a90514c1efc47df62eed58",
+      "duplicates": [
+        "PLG_MEDIATYPE_FLIPBOOK_GALLERY_WIDTH_LABEL"
+      ]
+    },
+    {
+      "path": "gallery_content_addon_v2.1.7/language/en-GB/en-GB.tp_addon_content_gallery.ini",
+      "keys": 70,
+      "sha256": "bb3dab516272aa74c932cb0a19417f26ed23525ab5f5b67c8c926a6c53ab6c0c",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/languages/admin/en-GB/com_tz_portfolio.ini",
+      "keys": 999,
+      "sha256": "01e53ec478c70204136a17b45012e96d6c69d7422137ff1c7892679a9c13f45b",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/languages/admin/en-GB/com_tz_portfolio.sys.ini",
+      "keys": 36,
+      "sha256": "b757994a49889af6a67722a44ca41c53825a054afdc6381514729cc34195fef0",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/languages/site/en-GB/com_tz_portfolio.ini",
+      "keys": 147,
+      "sha256": "ba20057394c64434e121f3bd9e7b46452a31803d557d6d7fab8c0d4679fc9286",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/content/vote/language/en-GB/en-GB.tp_addon_content_vote.ini",
+      "keys": 33,
+      "sha256": "8f487941e511f1a73f7641586e07558c1eb8d8f75a904eb7950f53f64580d4ed",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/checkboxes/language/en-GB/en-GB.tp_addon_extrafields_checkboxes.ini",
+      "keys": 5,
+      "sha256": "36fc46b11f441856894606354bf934eb83d5a10938c80efc01b376705b48475c",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/dropdownlist/language/en-GB/en-GB.tp_addon_extrafields_dropdownlist.ini",
+      "keys": 7,
+      "sha256": "e9b0a5306fc52786cd94bc22a6ff0fac4ee3388c9a36e2afaa58d402518a6eee",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/multipleselect/language/en-GB/en-GB.tp_addon_extrafields_multipleselect.ini",
+      "keys": 7,
+      "sha256": "d8e1909ea6f57ee6eb82c04b5b31b72847ac7f603c99b3b38fbf67d0db0b0bb8",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/radio/language/en-GB/en-GB.tp_addon_extrafields_radio.ini",
+      "keys": 12,
+      "sha256": "beb8083f9815a64b46c66f61f3344308281899606732bfb52fefca038fb83262",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/text/language/en-GB/en-GB.tp_addon_extrafields_text.ini",
+      "keys": 22,
+      "sha256": "6ac742adb9be5294837c8d3a5a0e0ee98a232616dc8a255019e57916337bb36d",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/textarea/language/en-GB/en-GB.tp_addon_extrafields_textarea.ini",
+      "keys": 27,
+      "sha256": "77384a0e1d2ab0638aef66593720e6e957d6cb7a585a1192f01c2dc41e4b03e1",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/mediatype/image/language/en-GB/en-GB.tp_addon_mediatype_image.ini",
+      "keys": 93,
+      "sha256": "e1d879eafe69d0532226eba05cc47738167b6d6dba16d1a96da746c35adebbb2",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/add-ons/user/profile/language/en-GB/en-GB.tp_addon_user_profile.ini",
+      "keys": 35,
+      "sha256": "ac55dc7ab8befd0cca1a86c1c76e325c42493a835463b86fd19a5cb0c2714f19",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio/language/en-GB/mod_tz_portfolio.ini",
+      "keys": 56,
+      "sha256": "ab7256d401800909f016a239cc38a4ef8fb3b5b54e8f9eccf02d89b93d4baae9",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio/language/en-GB/mod_tz_portfolio.sys.ini",
+      "keys": 3,
+      "sha256": "fcca0ffbdfc399351d55bcd7b5a4da847f230916c9c70334ee009e4c569e1eb5",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_articles_archive/language/en-GB/mod_tz_portfolio_articles_archive.ini",
+      "keys": 9,
+      "sha256": "dfe531ddfdfb3293b807bad1bb4ac21aecdb5d3bb91c607e46073341e328c824",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_articles_archive/language/en-GB/mod_tz_portfolio_articles_archive.sys.ini",
+      "keys": 3,
+      "sha256": "7f47189e69027aac824e3c3dd04cb413503904593565ca25beeabd16988067ce",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_categories/language/en-GB/mod_tz_portfolio_categories.ini",
+      "keys": 7,
+      "sha256": "4411399f7684d323bcd63bb08cc972c0c91b51ce65359cc9db2f923d75e781b4",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_categories/language/en-GB/mod_tz_portfolio_categories.sys.ini",
+      "keys": 4,
+      "sha256": "639b73aef2c1cc25e0ebce2f66e9d8e9cfa8d502c04995f79619b0f6eb604b1c",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_filter/language/en-GB/mod_tz_portfolio_filter.ini",
+      "keys": 43,
+      "sha256": "47418ea36b03642a14b8cde8f85ff637f616cf6405f06a665e9105eaf9bd6252",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_filter/language/en-GB/mod_tz_portfolio_filter.sys.ini",
+      "keys": 2,
+      "sha256": "b0eb9ab32cff5bef277df9b68d8f03744cb92cafba52fed27810b94aa48962f6",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_tags/language/en-GB/mod_tz_portfolio_tags.ini",
+      "keys": 13,
+      "sha256": "17a527752c6594cfc17c8f0b55b86d8fd8d7229bf3533c8c21c2d938b87bf331",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_tags/language/en-GB/mod_tz_portfolio_tags.sys.ini",
+      "keys": 2,
+      "sha256": "350168f839c42df0d5122a3e3a0dcadaa015356786c8c95226fab2327cf8eac1",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/plugins/system/tz_portfolio/language/en-GB/plg_system_tz_portfolio.ini",
+      "keys": 1,
+      "sha256": "6ff462291a254770820252cc506d6ce660ebc26a5d02381c15e2dd5edcd7f0ff",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/plugins/system/tz_portfolio/language/en-GB/plg_system_tz_portfolio.sys.ini",
+      "keys": 1,
+      "sha256": "3fc44d8a9e160e1fb63bf1f599e4af868bc1d60ef839c9d5ea893b4c667061ec",
+      "duplicates": []
+    },
+    {
+      "path": "tz_portfolio_v4.1.2/setup/packages/styles/system/language/en-GB/en-GB.tp_style_system.ini",
+      "keys": 3,
+      "sha256": "e71d9f8e776c2207677be44fae1834aef640d94b6310faa5b3aba32107e45e35",
+      "duplicates": []
+    }
+  ],
+  "legacy_aliases": [
+    "COM_TZ_PORTFOLIO_PLUS_ATTRIBS_FIELDSET_LABEL",
+    "COM_TZ_PORTFOLIO_PLUS_EMAIL",
+    "COM_TZ_PORTFOLIO_PLUS_EXTENSION",
+    "COM_TZ_PORTFOLIO_PLUS_FEMALE",
+    "COM_TZ_PORTFOLIO_PLUS_GENDER",
+    "COM_TZ_PORTFOLIO_PLUS_INSTALL_SUCCESS",
+    "COM_TZ_PORTFOLIO_PLUS_LABEL_TITLE",
+    "COM_TZ_PORTFOLIO_PLUS_MALE",
+    "COM_TZ_PORTFOLIO_PLUS_NO_PERMISSION_TO_MODERATE_ARTICLE",
+    "COM_TZ_PORTFOLIO_PLUS_OPTION_INHERIT_FROM_CATEGORY",
+    "COM_TZ_PORTFOLIO_PLUS_OPTION_SELECT",
+    "COM_TZ_PORTFOLIO_PLUS_REJECT",
+    "COM_TZ_PORTFOLIO_PLUS_SETUP_INSTALL_ADDONS",
+    "COM_TZ_PORTFOLIO_PLUS_SETUP_INSTALL_MODULES",
+    "COM_TZ_PORTFOLIO_PLUS_SETUP_INSTALL_PLUGINS",
+    "COM_TZ_PORTFOLIO_PLUS_SETUP_INSTALL_STYLES",
+    "COM_TZ_PORTFOLIO_PLUS_WEBSITE"
+  ],
+  "packages": [
+    {
+      "group": "portfolio",
+      "zip": "tz_portfolio_localization_ru_uk_v1.0.0.zip",
+      "files": 94,
+      "sha256": "b41cebaf8746232ec3a34ff2e42328d7a3cfe6686649114f5516607b497d91a2",
+      "targets": [
+        "administrator/language/ru-RU/com_tz_portfolio.ini",
+        "administrator/language/ru-RU/com_tz_portfolio.sys.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio.sys.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio_articles_archive.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio_articles_archive.sys.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio_categories.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio_categories.sys.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio_filter.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio_filter.sys.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio_tags.ini",
+        "administrator/language/ru-RU/mod_tz_portfolio_tags.sys.ini",
+        "administrator/language/ru-RU/plg_system_tz_portfolio.ini",
+        "administrator/language/ru-RU/plg_system_tz_portfolio.sys.ini",
+        "administrator/language/uk-UA/com_tz_portfolio.ini",
+        "administrator/language/uk-UA/com_tz_portfolio.sys.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio.sys.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio_articles_archive.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio_articles_archive.sys.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio_categories.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio_categories.sys.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio_filter.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio_filter.sys.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio_tags.ini",
+        "administrator/language/uk-UA/mod_tz_portfolio_tags.sys.ini",
+        "administrator/language/uk-UA/plg_system_tz_portfolio.ini",
+        "administrator/language/uk-UA/plg_system_tz_portfolio.sys.ini",
+        "components/com_tz_portfolio/add-ons/content/vote/language/ru-RU/ru-RU.tp_addon_content_vote.ini",
+        "components/com_tz_portfolio/add-ons/content/vote/language/uk-UA/uk-UA.tp_addon_content_vote.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/checkboxes/language/ru-RU/ru-RU.tp_addon_extrafields_checkboxes.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/checkboxes/language/uk-UA/uk-UA.tp_addon_extrafields_checkboxes.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/dropdownlist/language/ru-RU/ru-RU.tp_addon_extrafields_dropdownlist.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/dropdownlist/language/uk-UA/uk-UA.tp_addon_extrafields_dropdownlist.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/multipleselect/language/ru-RU/ru-RU.tp_addon_extrafields_multipleselect.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/multipleselect/language/uk-UA/uk-UA.tp_addon_extrafields_multipleselect.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/radio/language/ru-RU/ru-RU.tp_addon_extrafields_radio.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/radio/language/uk-UA/uk-UA.tp_addon_extrafields_radio.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/text/language/ru-RU/ru-RU.tp_addon_extrafields_text.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/text/language/uk-UA/uk-UA.tp_addon_extrafields_text.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/textarea/language/ru-RU/ru-RU.tp_addon_extrafields_textarea.ini",
+        "components/com_tz_portfolio/add-ons/extrafields/textarea/language/uk-UA/uk-UA.tp_addon_extrafields_textarea.ini",
+        "components/com_tz_portfolio/add-ons/mediatype/image/language/ru-RU/ru-RU.tp_addon_mediatype_image.ini",
+        "components/com_tz_portfolio/add-ons/mediatype/image/language/uk-UA/uk-UA.tp_addon_mediatype_image.ini",
+        "components/com_tz_portfolio/add-ons/user/profile/language/ru-RU/ru-RU.tp_addon_user_profile.ini",
+        "components/com_tz_portfolio/add-ons/user/profile/language/uk-UA/uk-UA.tp_addon_user_profile.ini",
+        "components/com_tz_portfolio/styles/system/language/ru-RU/ru-RU.tp_style_system.ini",
+        "components/com_tz_portfolio/styles/system/language/uk-UA/uk-UA.tp_style_system.ini",
+        "language/ru-RU/com_tz_portfolio.ini",
+        "language/ru-RU/mod_tz_portfolio.ini",
+        "language/ru-RU/mod_tz_portfolio.sys.ini",
+        "language/ru-RU/mod_tz_portfolio_articles_archive.ini",
+        "language/ru-RU/mod_tz_portfolio_articles_archive.sys.ini",
+        "language/ru-RU/mod_tz_portfolio_categories.ini",
+        "language/ru-RU/mod_tz_portfolio_categories.sys.ini",
+        "language/ru-RU/mod_tz_portfolio_filter.ini",
+        "language/ru-RU/mod_tz_portfolio_filter.sys.ini",
+        "language/ru-RU/mod_tz_portfolio_tags.ini",
+        "language/ru-RU/mod_tz_portfolio_tags.sys.ini",
+        "language/uk-UA/com_tz_portfolio.ini",
+        "language/uk-UA/mod_tz_portfolio.ini",
+        "language/uk-UA/mod_tz_portfolio.sys.ini",
+        "language/uk-UA/mod_tz_portfolio_articles_archive.ini",
+        "language/uk-UA/mod_tz_portfolio_articles_archive.sys.ini",
+        "language/uk-UA/mod_tz_portfolio_categories.ini",
+        "language/uk-UA/mod_tz_portfolio_categories.sys.ini",
+        "language/uk-UA/mod_tz_portfolio_filter.ini",
+        "language/uk-UA/mod_tz_portfolio_filter.sys.ini",
+        "language/uk-UA/mod_tz_portfolio_tags.ini",
+        "language/uk-UA/mod_tz_portfolio_tags.sys.ini",
+        "modules/mod_tz_portfolio/language/ru-RU/mod_tz_portfolio.ini",
+        "modules/mod_tz_portfolio/language/ru-RU/mod_tz_portfolio.sys.ini",
+        "modules/mod_tz_portfolio/language/uk-UA/mod_tz_portfolio.ini",
+        "modules/mod_tz_portfolio/language/uk-UA/mod_tz_portfolio.sys.ini",
+        "modules/mod_tz_portfolio_articles_archive/language/ru-RU/mod_tz_portfolio_articles_archive.ini",
+        "modules/mod_tz_portfolio_articles_archive/language/ru-RU/mod_tz_portfolio_articles_archive.sys.ini",
+        "modules/mod_tz_portfolio_articles_archive/language/uk-UA/mod_tz_portfolio_articles_archive.ini",
+        "modules/mod_tz_portfolio_articles_archive/language/uk-UA/mod_tz_portfolio_articles_archive.sys.ini",
+        "modules/mod_tz_portfolio_categories/language/ru-RU/mod_tz_portfolio_categories.ini",
+        "modules/mod_tz_portfolio_categories/language/ru-RU/mod_tz_portfolio_categories.sys.ini",
+        "modules/mod_tz_portfolio_categories/language/uk-UA/mod_tz_portfolio_categories.ini",
+        "modules/mod_tz_portfolio_categories/language/uk-UA/mod_tz_portfolio_categories.sys.ini",
+        "modules/mod_tz_portfolio_filter/language/ru-RU/mod_tz_portfolio_filter.ini",
+        "modules/mod_tz_portfolio_filter/language/ru-RU/mod_tz_portfolio_filter.sys.ini",
+        "modules/mod_tz_portfolio_filter/language/uk-UA/mod_tz_portfolio_filter.ini",
+        "modules/mod_tz_portfolio_filter/language/uk-UA/mod_tz_portfolio_filter.sys.ini",
+        "modules/mod_tz_portfolio_tags/language/ru-RU/mod_tz_portfolio_tags.ini",
+        "modules/mod_tz_portfolio_tags/language/ru-RU/mod_tz_portfolio_tags.sys.ini",
+        "modules/mod_tz_portfolio_tags/language/uk-UA/mod_tz_portfolio_tags.ini",
+        "modules/mod_tz_portfolio_tags/language/uk-UA/mod_tz_portfolio_tags.sys.ini",
+        "plugins/system/tz_portfolio/language/ru-RU/plg_system_tz_portfolio.ini",
+        "plugins/system/tz_portfolio/language/ru-RU/plg_system_tz_portfolio.sys.ini",
+        "plugins/system/tz_portfolio/language/uk-UA/plg_system_tz_portfolio.ini",
+        "plugins/system/tz_portfolio/language/uk-UA/plg_system_tz_portfolio.sys.ini"
+      ]
+    },
+    {
+      "group": "flipbook",
+      "zip": "tz_flipbook_localization_ru_uk_v1.0.0.zip",
+      "files": 2,
+      "sha256": "7203685d9ffdb84e4990393f4cc1d53e39915d2b1e0c1aa9154dbfe67031d8bc",
+      "targets": [
+        "components/com_tz_portfolio/add-ons/mediatype/flipbook_gallery/language/ru-RU/ru-RU.tp_addon_mediatype_flipbook_gallery.ini",
+        "components/com_tz_portfolio/add-ons/mediatype/flipbook_gallery/language/uk-UA/uk-UA.tp_addon_mediatype_flipbook_gallery.ini"
+      ]
+    },
+    {
+      "group": "gallery",
+      "zip": "tz_gallery_localization_ru_uk_v1.0.0.zip",
+      "files": 2,
+      "sha256": "70c2843d4d70b31031c280bbc20b88874d6b0f84fd571a3dfa65fcffadb3b074",
+      "targets": [
+        "components/com_tz_portfolio/add-ons/content/gallery/language/ru-RU/ru-RU.tp_addon_content_gallery.ini",
+        "components/com_tz_portfolio/add-ons/content/gallery/language/uk-UA/uk-UA.tp_addon_content_gallery.ini"
+      ]
+    }
+  ],
+  "original_english_files_byte_verified": [
+    "flipbook_gallery_addon_v1.0.19/language/en-GB/en-GB.tp_addon_mediatype_flipbook_gallery.ini",
+    "gallery_content_addon_v2.1.7/language/en-GB/en-GB.tp_addon_content_gallery.ini",
+    "tz_portfolio_v4.1.2/languages/admin/en-GB/com_tz_portfolio.ini",
+    "tz_portfolio_v4.1.2/languages/admin/en-GB/com_tz_portfolio.sys.ini",
+    "tz_portfolio_v4.1.2/languages/site/en-GB/com_tz_portfolio.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/content/vote/language/en-GB/en-GB.tp_addon_content_vote.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/checkboxes/language/en-GB/en-GB.tp_addon_extrafields_checkboxes.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/dropdownlist/language/en-GB/en-GB.tp_addon_extrafields_dropdownlist.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/multipleselect/language/en-GB/en-GB.tp_addon_extrafields_multipleselect.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/radio/language/en-GB/en-GB.tp_addon_extrafields_radio.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/text/language/en-GB/en-GB.tp_addon_extrafields_text.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/extrafields/textarea/language/en-GB/en-GB.tp_addon_extrafields_textarea.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/mediatype/image/language/en-GB/en-GB.tp_addon_mediatype_image.ini",
+    "tz_portfolio_v4.1.2/setup/packages/add-ons/user/profile/language/en-GB/en-GB.tp_addon_user_profile.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio/language/en-GB/mod_tz_portfolio.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio/language/en-GB/mod_tz_portfolio.sys.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_articles_archive/language/en-GB/mod_tz_portfolio_articles_archive.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_articles_archive/language/en-GB/mod_tz_portfolio_articles_archive.sys.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_categories/language/en-GB/mod_tz_portfolio_categories.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_categories/language/en-GB/mod_tz_portfolio_categories.sys.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_filter/language/en-GB/mod_tz_portfolio_filter.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_filter/language/en-GB/mod_tz_portfolio_filter.sys.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_tags/language/en-GB/mod_tz_portfolio_tags.ini",
+    "tz_portfolio_v4.1.2/setup/packages/modules/mod_tz_portfolio_tags/language/en-GB/mod_tz_portfolio_tags.sys.ini",
+    "tz_portfolio_v4.1.2/setup/packages/plugins/system/tz_portfolio/language/en-GB/plg_system_tz_portfolio.ini",
+    "tz_portfolio_v4.1.2/setup/packages/plugins/system/tz_portfolio/language/en-GB/plg_system_tz_portfolio.sys.ini",
+    "tz_portfolio_v4.1.2/setup/packages/styles/system/language/en-GB/en-GB.tp_style_system.ini"
+  ],
+  "nested_system_zip_same_language_values": true,
+  "nested_system_zip_comment_links_differ": true,
+  "input_gallery": {
+    "ru-RU": {
+      "missing_keys": [],
+      "extra_keys": [],
+      "unchanged_english_values": [
+        "PLG_CONTENT_GALLERY",
+        "PLG_CONTENT_GALLERY_XML_DESCRIPTION",
+        "PLG_CONTENT_GALLERY_REMOVE_LABEL",
+        "PLG_CONTENT_GALLERY_ERROR_WARNINVALID",
+        "PLG_CONTENT_GALLERY_ERROR_WARNINVALID_MIME",
+        "PLG_CONTENT_GALLERY_ERROR_WARNFILETYPE",
+        "PLG_CONTENT_GALLERY_ERROR_WARNFILETOOLARGE",
+        "PLG_CONTENT_GALLERY_MAXIMUM_FILE_SIZE_LABEL",
+        "PLG_CONTENT_GALLERY_MAXIMUM_FILE_SIZE_DESC",
+        "PLG_CONTENT_GALLERY_FILE_TYPES_LABEL",
+        "PLG_CONTENT_GALLERY_FILE_TYPES_DESC",
+        "PLG_CONTENT_GALLERY_LEGAL_MIME_TYPE_LABEL",
+        "PLG_CONTENT_GALLERY_LEGAL_MIME_TYPE_DESC",
+        "PLG_CONTENT_GALLERY_SWITCHER_LABEL",
+        "PLG_CONTENT_GALLERY_COLUMNS_LABEL",
+        "PLG_CONTENT_GALLERY_LIGHTBOX_LABEL",
+        "PLG_CONTENT_GALLERY_RELATED_SHOW_IMAGE_LABEL",
+        "PLG_CONTENT_GALLERY_RELATED_SIZE_LABEL",
+        "PLG_CONTENT_GALLERY_RELATED_SIZE_DESC",
+        "PLG_CONTENT_GALLERY_FEED_OPTIONS_LABEL",
+        "PLG_CONTENT_GALLERY_SHOW_FEED_IMAGE_LABEL",
+        "PLG_CONTENT_GALLERY_FEED_SIZE_LABEL",
+        "PLG_CONTENT_GALLERY_PAUSE",
+        "PLG_CONTENT_GALLERY_PLAY",
+        "PLG_CONTENT_GALLERY_FIELDSET_LABEL",
+        "PLG_CONTENT_GALLERY_DEBUG_MESSAGES",
+        "PLG_CONTENT_GALLERY_NO_FILE_UPLOADED",
+        "PLG_CONTENT_GALLERY_LOADING_PLUGIN"
+      ],
+      "keys": 70
+    },
+    "uk-UA": {
+      "missing_keys": [],
+      "extra_keys": [],
+      "unchanged_english_values": [
+        "PLG_CONTENT_GALLERY",
+        "PLG_CONTENT_GALLERY_XML_DESCRIPTION",
+        "PLG_CONTENT_GALLERY_REMOVE_LABEL",
+        "PLG_CONTENT_GALLERY_ERROR_WARNINVALID",
+        "PLG_CONTENT_GALLERY_ERROR_WARNINVALID_MIME",
+        "PLG_CONTENT_GALLERY_ERROR_WARNFILETYPE",
+        "PLG_CONTENT_GALLERY_ERROR_WARNFILETOOLARGE",
+        "PLG_CONTENT_GALLERY_MAXIMUM_FILE_SIZE_LABEL",
+        "PLG_CONTENT_GALLERY_MAXIMUM_FILE_SIZE_DESC",
+        "PLG_CONTENT_GALLERY_FILE_TYPES_LABEL",
+        "PLG_CONTENT_GALLERY_FILE_TYPES_DESC",
+        "PLG_CONTENT_GALLERY_LEGAL_MIME_TYPE_LABEL",
+        "PLG_CONTENT_GALLERY_LEGAL_MIME_TYPE_DESC",
+        "PLG_CONTENT_GALLERY_SWITCHER_LABEL",
+        "PLG_CONTENT_GALLERY_COLUMNS_LABEL",
+        "PLG_CONTENT_GALLERY_LIGHTBOX_LABEL",
+        "PLG_CONTENT_GALLERY_RELATED_SHOW_IMAGE_LABEL",
+        "PLG_CONTENT_GALLERY_RELATED_SIZE_LABEL",
+        "PLG_CONTENT_GALLERY_RELATED_SIZE_DESC",
+        "PLG_CONTENT_GALLERY_FEED_OPTIONS_LABEL",
+        "PLG_CONTENT_GALLERY_SHOW_FEED_IMAGE_LABEL",
+        "PLG_CONTENT_GALLERY_FEED_SIZE_LABEL",
+        "PLG_CONTENT_GALLERY_PAUSE",
+        "PLG_CONTENT_GALLERY_PLAY",
+        "PLG_CONTENT_GALLERY_FIELDSET_LABEL",
+        "PLG_CONTENT_GALLERY_DEBUG_MESSAGES",
+        "PLG_CONTENT_GALLERY_NO_FILE_UPLOADED",
+        "PLG_CONTENT_GALLERY_LOADING_PLUGIN"
+      ],
+      "keys": 70
+    }
+  },
+  "source_unique_keys": 1697
+}
