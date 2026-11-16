@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="4.1" type="tz_portfolio-addon" group="content" method="upgrade">
+    <name>plg_content_accordion</name>
+    <author>Sonny</author>
+    <creationDate>February 2026</creationDate>
+    <copyright>Copyright (C) 2015-2026 TZ Portfolio. All rights reserved.</copyright>
+    <license>GNU/GPL v2 or later http://www.gnu.org/licenses/gpl-2.0.html</license>
+    <authorEmail>support@templaza.com</authorEmail>
+    <authorUrl>www.templaza.com/</authorUrl>
+    <version>1.0.1</version>
+    <description>PLG_CONTENT_ACCORDION_XML_DESCRIPTION</description>
+    <tpTargetPlatforms>
+        <tpTargetPlatform name="com_tz_portfolio" version="4.1.*"/>
+    </tpTargetPlatforms>
+    <files>
+        <folder addon="accordion">services</folder>
+        <folder>admin</folder>
+        <folder>css</folder>
+        <folder>language</folder>
+        <folder>services</folder>
+        <folder>src</folder>
+        <folder>tmpl</folder>
+    </files>
+
+    <config>
+        <fields name="params" addfieldprefix="\TemPlaza\Component\TZ_Portfolio\Administrator\Field">
+            <!-- Parameters for front-end -->
+            <fieldset name="front_end"
+                      label="PLG_CONTENT_ACCORDION_FRONT_END_FIELDSET_LABEL"
+                      description="PLG_CONTENT_ACCORDION_CONFIG_SETTINGS_DESC">
+                <!-- Start article view options -->
+                <field type="spacer" name="spacer_accordion_article_hr" hr="true"/>
+                <field type="spacer" name="spacer_accordion_article_name"
+                       class="alert alert-warning btn-block"
+                       label="COM_TZ_PORTFOLIO_PLUS_ATTRIBS_FIELDSET_LABEL"/>
+                <field type="radio" name="accordion_show"
+                       default="1" class="switcher btn-group"
+                       label="PLG_CONTENT_ACCORDION_SHOW_LABEL"
+                       description="PLG_CONTENT_ACCORDION_SHOW_LABEL">
+                    <option value="0">JHIDE</option>
+                    <option value="1">JSHOW</option>
+                </field>
+                <!-- End article view options -->
+            </fieldset>
+            <!-- End parameters for front-end -->
+        </fields>
+    </config>
+</extension>

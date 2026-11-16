@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <!-- Form's field for article's create or edit view -->
+    <fieldset addfieldprefix="\TemPlaza\Component\TZ_Portfolio\Administrator\Field" name="basic">
+        <field type="text" name="title"
+               label="COM_TZ_PORTFOLIO_PLUS_LABEL_TITLE"/>
+        <field type="editor" name="content"
+               label="JGLOBAL_DESCRIPTION" filter="safehtml" />
+    </fieldset>
+    <!-- End form's field for article's create or edit view -->
+</form>

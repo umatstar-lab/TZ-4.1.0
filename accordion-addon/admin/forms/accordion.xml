@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <!-- Form's field for article's create or edit view -->
+    <fields name="content">
+        <fields name="accordion">
+            <fieldset addfieldprefix="\TemPlaza\Component\TZ_Portfolio\Administrator\Field" name="basic">
+                <field type="text" name="title"
+                       label="COM_TZ_PORTFOLIO_PLUS_LABEL_TITLE"/>
+                <field type="list" name="title_element" default="h3" showon="title!:"
+                       label="TZPORTFOLIO_ADDON_HTML_ELEMENT">
+                    <option value="h1">h1</option>
+                    <option value="h2">h2</option>
+                    <option value="h3">h3</option>
+                    <option value="h4">h4</option>
+                    <option value="h5">h5</option>
+                    <option value="h6">h6</option>
+                </field>
+                <field type="tzfont" name="title_font" default="" showon="title!:"
+                       label="TZPORTFOLIO_ADDON_TITLE_FONT">
+                </field>
+                <field type="color" name="title_color" default="" format="rgba" showon="title!:"
+                       label="TZPORTFOLIO_ADDON_TITLE_COLOR">
+                </field>
+                <field type="color" name="title_color_hover" default="" format="rgba" showon="title!:"
+                       label="TZPORTFOLIO_ADDON_TITLE_COLOR_HOVER">
+                </field>
+                <field type="number" name="title_margin_top" showon="title!:"
+                       label="TZPORTFOLIO_ADDON_TITLE_MARGIN_TOP"/>
+                <field type="number" name="title_margin_bottom" showon="title!:"
+                       label="TZPORTFOLIO_ADDON_TITLE_MARGIN_BOTTOM"/>
+
+                <field type="spacer" name="spacer_addon_general_hr" hr="true"/>
+                <field name="general_options_note" type="note" label="TZPORTFOLIO_ADDON_GENERAL_OPTIONS" />
+
+                <field type="tzmargin" name="accordion_margin" default=""
+                       label="TZPORTFOLIO_ADDON_MARGIN">
+                </field>
+                <field type="text" name="custom_class"
+                       label="TZPORTFOLIO_ADDON_CONTENT_CLASS"/>
+                <field type="spacer" name="spacer_addon_accordion_items_hr" hr="true"/>
+                <field name="accordion_item_note" type="note" label="TZPORTFOLIO_ADDON_VALUE_ITEMS" />
+                <field type="list" name="gutter" default=""
+                       label="TZPORTFOLIO_ADDON_CONTENT_ACCORDION_GUTTER">
+                    <option value="">PLG_CONTENT_ACCORDION_DEFAULT</option>
+                    <option value="gx-1">PLG_CONTENT_ACCORDION_XSMALL</option>
+                    <option value="gx-2">PLG_CONTENT_ACCORDION_SMALL</option>
+                    <option value="gx-3">PLG_CONTENT_ACCORDION_MEDIUM</option>
+                    <option value="gx-4">PLG_CONTENT_ACCORDION_LARGE</option>
+                    <option value="gx-5">PLG_CONTENT_ACCORDION_XLARGE</option>
+                </field>
+                <field name="accordion_items" type="subform" formsource="components/com_tz_portfolio/add-ons/content/accordion/admin/forms/accordion_item.xml" multiple="true" label="TZPORTFOLIO_ADDON_LEADER_ADD_ITEM" />
+            </fieldset>
+        </fields>
+    </fields>
+    <!-- End form's field for article's create or edit view -->
+</form>

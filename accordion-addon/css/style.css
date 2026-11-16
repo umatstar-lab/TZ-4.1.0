@@ -1,0 +1,19 @@
+/* Scoped styles: no dependency on the site's Bootstrap stylesheet. */
+.tz-portfolio-accordion{min-width:0;max-width:100%}
+.tz-portfolio-accordion .accordion-item{border:1px solid #ccc;border-radius:.25rem;overflow:hidden;margin:0 0 .25rem}
+.tz-portfolio-accordion .accordion-header{margin:0;padding:0;font:inherit}
+.tz-portfolio-accordion .accordion-button{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;padding:1rem;text-align:start;white-space:normal;overflow-wrap:anywhere;border:0;background:#f3f4f5;color:inherit;cursor:pointer;font:inherit}
+.tz-portfolio-accordion .accordion-button:after{content:'−';font-size:1.25em;flex-shrink:0}
+.tz-portfolio-accordion .accordion-button.collapsed:after{content:'+'}
+.tz-portfolio-accordion .accordion-button:focus-visible{outline:2px solid currentColor;outline-offset:-3px}
+.tz-portfolio-accordion .accordion-body{padding:1rem;overflow-wrap:anywhere}
+.tz-portfolio-accordion .accordion-body img{max-width:100%;height:auto}
+.tz-portfolio-accordion .accordion-body table{display:block;max-width:100%;overflow-x:auto}
+.tz-portfolio-accordion .collapse:not(.show){display:none}
+.tz-portfolio-accordion .collapsing{height:0;overflow:hidden;transition:height .35s ease}
+.tz-portfolio-accordion .gx-1 .accordion-item{margin-bottom:.25rem}
+.tz-portfolio-accordion .gx-2 .accordion-item{margin-bottom:.5rem}
+.tz-portfolio-accordion .gx-3 .accordion-item{margin-bottom:1rem}
+.tz-portfolio-accordion .gx-4 .accordion-item{margin-bottom:1.5rem}
+.tz-portfolio-accordion .gx-5 .accordion-item{margin-bottom:3rem}
+@media(prefers-reduced-motion:reduce){.tz-portfolio-accordion .collapsing{transition:none}}
